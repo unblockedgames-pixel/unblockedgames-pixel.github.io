@@ -1,0 +1,76 @@
+
+
+<script type="text/javascript" async="" src="https://www.google-analytics.com/analytics.js"></script><script type="text/javascript" async="" src="https://www.googletagmanager.com/gtag/js?id=UA-168755014-1&amp;l=dataLayer&amp;cx=c&amp;gtm=45je52q0v9132244804za200&amp;tag_exp=101732279~101732281~102067808~102482433~102539968~102558064~102587591~102605417~102640600~102658453~102717421~102732003"></script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-MENBM6GSNY"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-MENBM6GSNY")</script>
+<title>Bump Battle Royale</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Riftriot/guh@149fda7f7d7d52f391ef0d0430fd0e7a3f888455/Run%202/waflash/waflash-style.css" type="text/css">
+<script>
+		var gameConfig = {
+			swfUrl: "https://cdn.jsdelivr.net/gh/jackilyna/lightspark@2d4e6be626e519077183d024f917de7aa3d8c677/resources/bump-battle-royale.swf"		
+		}
+</script>
+
+
+<div id="waflashContainer">
+<canvas class="waflashCanvas" id="canvas" tabindex="1" width="716" height="419" style="cursor: default; --waf-content-width: 550px; --waf-content-height: 550px;" waf-content-width="550" waf-content-height="550" waf-content-fps="30"></canvas>
+<div id="waflashStatus" style="display: none;">Playing...</div>
+<script>
+		var ua = navigator.userAgent.toLowerCase();
+		if ( (navigator.appName =='Netscape' && ua.indexOf('trident') != -1) || (ua.indexOf("msie") != -1)) {
+    		var waf = document.getElementById('waflashStatus');
+			waf.style.display ='block';
+			waf.innerText ='??? ?????(IE) ??? ??? ???? ???? !\n??, ???? ?? ????? ??????.';
+			gtag('event', 'connect_from_ie', {'event_category': 'error', 'event_label': ua });
+		}
+	</script>
+<script type="module" crossorigin="anonymous">
+		let is_mobile = /Mobi/i.test(window.navigator.userAgent);
+		if (is_mobile) {
+			function scrollToSubject() {
+				try {
+					window.scrollTo({
+						top: 100,
+						left: 0,
+						behavior: 'smooth'
+					});
+				} catch (e) {}
+			}
+			scrollToSubject();
+			window.addEventListener("orientationchange", function() {
+				setTimeout(scrollToSubject, 100);
+			});
+		} else {
+			document.getElementById('canvas').focus();
+		}
+		document.getElementById('canvas').addEventListener("keydown", function(ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+		});
+		document.getElementById('canvas').addEventListener("click", function() {
+			document.getElementById('canvas').focus();
+		});
+		document.addEventListener("mousedown", (function() {
+			const canvasElement = document.getElementById('canvas');
+			let focused = false;
+			return function(ev) {
+				if (ev.target == canvasElement) {
+					if (!focused) {
+						canvasElement.focus();
+						focused = true;
+					}
+				} else {
+					if (focused) {
+						focused = false;
+					}
+				}
+				return true;
+			}
+		})());
+		import {
+			createWaflash
+		} from 'https://cdn.jsdelivr.net/gh/zhit73/wafedit@48971d688b5779ac5ca3081e3c0ddae574e33b18/wasm/waflash-player.min.js';
+		createWaflash(gameConfig.swfUrl, window.wafOptions || {});
+	</script>
+</div>
+<script src="https://cdn.jsdelivr.net/gh/st39/sdk@main/api.js"></script>
+
+
