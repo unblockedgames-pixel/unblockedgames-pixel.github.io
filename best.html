@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Embed URL in iFrame</title>
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        #urlInput {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            max-width: 600px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <input id="urlInput" type="text" placeholder="Enter the URL to embed" />
+
+    <iframe id="myIframe"></iframe>
+
+    <script>
+        // Function to Base64 encode the URL
+        function base64Encode(str) {
+            return btoa(unescape(encodeURIComponent(str)));
+        }
+
+        // Function to Base64 decode a URL
+        function base64Decode(encodedStr) {
+            return decodeURIComponent(escape(atob(encodedStr)));
+        }
+
+        // Function to update the URL hash with Base64 encoded URL
+        function updateUrlInHash() {
+            const urlInput = document.getElementById('urlInput').value;
+            if (urlInput) {
+                const encodedUrl = base64Encode(urlInput);
+                // Update the browser's address bar with the Base64 encoded URL after '#url='
+                window.location.hash = 'url=' + encodedUrl;
+                loadIframe(); // Load the iframe immediately after updating the hash
+            }
+        }
+
+        // Function to load the iframe based on the URL hash (decoded from Base64)
+        function loadIframe() {
+            const urlParams = new URLSearchParams(window.location.hash.substring(1));
+            const base64Url = urlParams.get('url');
+            if (base64Url) {
+                const decodedUrl = base64Decode(base64Url);
+                document.getElementById('myIframe').src = decodedUrl;
+            }
+        }
+
+        // Listen for user input to trigger URL encoding and updating the address bar
+        document.getElementById('urlInput').addEventListener('input', updateUrlInHash);
+
+        // Load the iframe when the page loads (if there's already a hash in the URL)
+        window.onload = loadIframe;
+    </script>
+</body>
+</html>
