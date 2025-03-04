@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Embed URL in iFrame</title>
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="myIframe"></iframe>
+
+    <script>
+        // Parse the hash fragment and get the 'url' parameter
+        const urlParams = new URLSearchParams(window.location.hash.substring(1));
+
+        // Get the Base64 encoded URL from the hash
+        const encodedUrl = urlParams.get('url');
+        
+        if (encodedUrl) {
+            // Decode the Base64 string to get the original URL
+            const decodedUrl = atob(encodedUrl);
+            
+            // Set the iframe source to the decoded URL
+            document.getElementById('myIframe').src = decodedUrl;
+        }
+    </script>
+</body>
+</html>
