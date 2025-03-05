@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iframe Control</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #myIframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<iframe id="myIframe" src="https://blocked.goguardian.com/"></iframe>
+<iframe src="https://xojw.github.io/waves-movies/" height="100%" width="100%"></iframe>
+<script>
+document.addEventListener('keydown', function(event) {
+    if (event.ctrlKey && event.key === 'm') {
+        var iframe = document.getElementById('myIframe');
+        iframe.style.display = iframe.style.display === 'none' ? 'block' : 'none';
+    }
+});
+</script>
+
+</
