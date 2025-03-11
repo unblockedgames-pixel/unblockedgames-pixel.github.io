@@ -1,0 +1,767 @@
+<html lang="en-us"><head></head><body class="dark"><module>
+<moduleprefs title="Google.com">
+<content type="html"><!--[CDATA[
+
+
+<!DOCTYPE html-->
+
+
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Eat Blobs Simulator</title>
+<style>
+        html,
+        body {
+            background-image: url("https://cdn.jsdelivr.net/gh/namesvalue-gmes/bg@main/Build.jpg");
+            background-position: center; /* Center the image */
+            background-repeat: no-repeat; /* Do not repeat the image */
+            background-size: cover; /* Resize the background image to cover the entire container */
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        div#gameContainer {
+            background: transparent !important;
+            position: absolute;
+        }
+
+            div#gameContainer canvas {
+                position: absolute;
+            }
+
+                div#gameContainer canvas[data-pixel-art="true"] {
+                    position: absolute;
+                    image-rendering: optimizeSpeed;
+                    image-rendering: -webkit-crisp-edges;
+                    image-rendering: -moz-crisp-edges;
+                    image-rendering: -o-crisp-edges;
+                    image-rendering: crisp-edges;
+                    image-rendering: -webkit-optimize-contrast;
+                    image-rendering: optimize-contrast;
+                    image-rendering: pixelated;
+                    -ms-interpolation-mode: nearest-neighbor;
+                }
+
+        .loadingOut {
+            width: 250px;
+            position: fixed;
+            left: 50%;
+            top: calc(50% - 8px);
+            transform: translate(-50%);
+            border: 2px solid white;
+            height: 14px;
+        }
+
+        .centered {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin-top: -150px;
+            margin-left: -250px;
+            width: 500px;
+        }
+    </style>
+<link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/namesvalue-gmes/bg@main/TemplateData/favicon.ico">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/namesvalue-gmes/bg@main/TemplateData/style.css">
+
+<script src="https://cdn.jsdelivr.net/gh/namesvalue-gmes/bg@main/v2.272eb20751e2dc6fe4e6.js"></script>
+
+
+<div id="unity-container" class="unity-desktop">
+<canvas id="unity-canvas" width="716" height="451" style="background: url(&quot;https://cdn.jsdelivr.net/gh/namesvalue-gmes/bg@main/Build/26c74573bbb7465977abae4f700b1cec.jpg&quot;) center center / cover; cursor: default;"></canvas>
+</div>
+<div id="loading-cover" style="display: none;">
+<div id="unity-loading-bar">
+<div id="unity-logo"><img src="https://cdn.jsdelivr.net/gh/namesvalue-gmes/bg@main/logo.png"></div>
+<div id="unity-progress-bar-empty" style="">
+<div id="unity-progress-bar-full" style="width: 100%;"></div>
+</div>
+<div class="spinner" style="display: none;"></div>
+</div>
+</div>
+<script>
+      const hideFullScreenButton = "";
+      const buildUrl = "https://cdn.jsdelivr.net/gh/namesvalue-gmes/bg@main/Build/";
+      const loaderUrl = buildUrl + "/9853637125e801e9aae48e78dbbdcfca.loader.js";
+      const config = {
+        dataUrl: buildUrl + "/91b1d4b74bbec8ac4ffe70aaaab2f8b4.data.unityweb",
+        frameworkUrl: buildUrl + "/6c30733732d03d30a264f10525008a67.framework.js.unityweb",
+        codeUrl: buildUrl + "/1e139915a5376fbfe3577f0257baf219.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Cursora Labs O.Ü",
+        productName: "Eat Blobs Simulator",
+        productVersion: "0.1n",
+        webglContextAttributes: {
+            preserveDrawingBuffer: true,
+        powerPreference: "high-performance",
+    },
+      };
+
+      const container = document.querySelector("#unity-container");
+      const canvas = document.querySelector("#unity-canvas");
+      const loadingCover = document.querySelector("#loading-cover");
+      const progressBarEmpty = document.querySelector("#unity-progress-bar-empty");
+      const progressBarFull = document.querySelector("#unity-progress-bar-full");
+      const spinner = document.querySelector('.spinner');
+
+      const canFullscreen = (function() {
+        for (const key of [
+            'exitFullscreen',
+            'webkitExitFullscreen',
+            'webkitCancelFullScreen',
+            'mozCancelFullScreen',
+            'msExitFullscreen',
+          ]) {
+          if (key in document) {
+            return true;
+          }
+        }
+        return false;
+      }());
+
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            container.className = "unity-mobile";
+            config.devicePixelRatio = 1.5;
+        } else {
+            config.devicePixelRatio = 1;
+        }
+      
+      canvas.style.background = "url('https://cdn.jsdelivr.net/gh/namesvalue-gmes/bg@main/Build/26c74573bbb7465977abae4f700b1cec.jpg') center / cover";
+      loadingCover.style.display = "";
+      
+        let myGameInstance = null;
+        let player;
+        let leaderboard;
+        let payments = null;
+        let promptCanShow = false;
+        let reviewCanShow = false;
+        let initSDK = false;
+        let initGame = false;
+        let photoSizeForInit;
+        let scopesForInit;
+        let nowFullAdOpen = false;
+        let letGameReadyApi = true;
+
+      const script = document.createElement("script");
+      script.src = loaderUrl;
+
+        script.onload = () => 
+        {
+            createUnityInstance(canvas, config, (progress) => {
+                spinner.style.display = "none";
+                progressBarEmpty.style.display = "";
+                progressBarFull.style.width = `${100 * progress}%`;
+            }).then((unityInstance) => {
+
+                myGameInstance = unityInstance;
+                loadingCover.style.display = "none";
+            }).catch((message) => {
+                alert(message);
+            });
+        };
+
+        InitYandex();
+        function InitYandex() {
+            YaGames.init()
+                .then(ysdk => {
+                    console.log('Init Yandex SDK');
+                    window.ysdk = ysdk;
+                    InitPayments();
+
+                    try {
+                        ysdk.shortcut.canShowPrompt().then(prompt => {
+                            if (prompt.canShow) {
+                                promptCanShow = true;
+                            }
+                        });
+                    } catch (e) {
+                        console.error('CRASH canShowPrompt: ', e.message);
+                    }
+
+                    try {
+                        ysdk.feedback.canReview().then(({ value, reason }) => {
+                            if (value) {
+                                reviewCanShow = true;
+                            } else {
+                                console.log('reviewCanShow = false', reason)
+                            }
+                        })
+
+                        ysdk.shortcut.canShowPrompt().then(prompt => {
+                            if (prompt.canShow) {
+                                promptCanShow = true;
+                            }
+                        });
+                    } catch (e) {
+                        console.error('CRASH canShowFeedback: ', e.message);
+                    }
+
+                    FullAdShow(); // First ad true
+
+                    if (initGame) {
+                        InitPlayer(photoSize, scopes);
+                    }
+                    initSDK = true;
+                });
+        }
+
+        function InitGame(photoSize, scopes, gameReadyApi) {
+            console.log('Init GAME');
+            initGame = true;
+            photoSizeForInit = photoSize;
+            scopesForInit = scopes;
+
+            if (initSDK == true) {
+                if (gameReadyApi == true)
+                    GameReadyAPI();
+                InitPlayer(photoSize, scopes);
+            }
+            else {
+                InitYandex();
+                setTimeout(function () {
+                    if (!initSDK) {
+                        console.error('CRASH InitYandex');
+                        NotAuthorized();
+                    }
+                }, 1000);
+            }
+
+            if (nowFullAdOpen == true) {
+                myGameInstance.SendMessage('YandexGame', 'OpenFullAd');
+            }
+        }
+
+        function GameReadyAPI() {
+            if (letGameReadyApi) {
+                ysdk.features.LoadingAPI?.ready();
+                letGameReadyApi = false;
+                console.log('Game Ready API');
+            }
+        }
+
+        function NotAuthorized() {
+            try {
+                console.log('Authorized failed');
+                let authJson = {
+                    "playerAuth": "rejected",
+                    "playerName": "unauthorized",
+                    "playerId": "unauthorized",
+                    "playerPhoto": "null"
+                };
+                myGameInstance.SendMessage('YandexGame', 'SetInitializationSDK', JSON.stringify(authJson));
+            } catch (e) {
+                console.error('CRASH Not Authorized: ', e.message);
+            }
+        }
+
+        function InitPlayer(photoSize, _scopes) {
+            try {
+                return ysdk.getPlayer({ scopes: _scopes }).then(_player => {
+
+                    player = _player;
+
+                    let playerName = player.getName();
+                    let playerPhoto = player.getPhoto(photoSize);
+
+                    if (!_scopes) {
+                        playerName = "anonymous";
+                        playerPhoto = "null";
+                    }
+
+                    if (player.getMode() === 'lite') {
+
+                        console.log('Not Authorized');
+                        NotAuthorized();
+                    } else {
+                        let authJson = {
+                            "playerAuth": "resolved",
+                            "playerName": playerName,
+                            "playerId": player.getUniqueID(),
+                            "playerPhoto": playerPhoto
+                        };
+                        myGameInstance.SendMessage('YandexGame', 'SetInitializationSDK', JSON.stringify(authJson));
+                        window.focus();
+                    }
+                }).catch(e => {
+                    console.error('Authorized err: ', e.message);
+                    NotAuthorized();
+                });
+            } catch (e) {
+                console.error('CRASH init Player: ', e.message);
+                window.focus();
+            }
+        }
+
+        function OpenAuthDialog(photoSize, scopes) {
+            try {
+                ysdk.auth.openAuthDialog().then(() => {
+                    InitPlayer(photoSize, scopes);
+                }).catch(() => {
+                    InitSDK(photoSize, scopes);
+                });
+            } catch (e) {
+                console.log('CRASH Open Auth Dialog: ', e.message);
+            }
+        }
+
+        function FullAdShow() {
+            try {
+                window.ysdk.adv.showFullscreenAdv(
+                    {
+                        callbacks: {
+                            onOpen: () => {
+                                console.log('Open Fullscreen Ad');
+                                nowFullAdOpen = true;
+                                if (initGame === true)
+                                    myGameInstance.SendMessage('YandexGame', 'OpenFullAd');
+                            },
+                            onClose: (wasShown) => {
+                                nowFullAdOpen = false;
+                                if (initGame === true) {
+                                    if (wasShown) {
+                                        myGameInstance.SendMessage('YandexGame', 'CloseFullAd', 'true');
+                                    }
+                                    else {
+                                        myGameInstance.SendMessage('YandexGame', 'CloseFullAd', 'false');
+                                    }
+                                }
+                                window.focus();
+                            },
+                            onError: (error) => {
+                                console.error('Error Fullscreen Ad', error);
+                                myGameInstance.SendMessage('YandexGame', 'ErrorFullAd');
+                                window.focus();
+                            }
+                        }
+                    });
+            } catch (e) {
+                console.error('CRASH FullAd Show: ', e.message);
+            }
+        }
+
+        function RewardedShow(id) {
+            try {
+                window.ysdk.adv.showRewardedVideo(
+                    {
+                        callbacks:
+                        {
+                            onOpen: () => {
+                                console.log('Opened Video Ad. Id: ' + id);
+                                myGameInstance.SendMessage('YandexGame', 'OpenVideo');
+                            },
+                            onClose: () => {
+                                console.log('Closed Video Ad. Id: ' + id);
+                                myGameInstance.SendMessage('YandexGame', 'CloseVideo');
+                                window.focus();
+                            },
+                            onRewarded: () => {
+                                console.log('Reward Video Ad. Id: ' + id);
+                                myGameInstance.SendMessage('YandexGame', 'RewardVideo', id);
+                            },
+                            onError: (e) => {
+                                console.error('Error Video Ad. Id: ' + id, e);
+                                myGameInstance.SendMessage('YandexGame', 'ErrorVideo');
+                            }
+                        }
+                    });
+            } catch (err) {
+                console.error('CRASH Rewarded Video Ad Show: ', err.message);
+            }
+        }
+
+        function StickyAdActivity(show) {
+            try {
+                ysdk.adv.getBannerAdvStatus().then(({ stickyAdvIsShowing, reason }) => {
+                    if (stickyAdvIsShowing) {
+                        if (!show) {
+                            ysdk.adv.hideBannerAdv();
+                        }
+                    }
+                    else if (reason) {
+                        console.log('Sticky ad are not shown. Reason:', reason);
+                    }
+                    else if (show) {
+                        ysdk.adv.showBannerAdv();
+                    }
+                })
+            } catch (e) {
+                console.error('CRASH Sticky Activity: ', e.message);
+            }
+        }
+
+        function InitPayments() {
+            try {
+                ysdk.getPayments().then(_payments => {
+                    console.log('Purchases are available');
+                    payments = _payments;
+                }).catch(e => {
+                    console.log('Purchases are not available', e.message);
+                })
+            } catch (e) {
+                console.error('CRASH Init Payments: ', e.message);
+            }
+        }
+
+        function BuyPayments(id) {
+            try {
+                if (payments != null) {
+                    payments.purchase(id).then(() => {
+                        console.log('Purchase Success');
+                        ConsumePurchase(id);
+                        window.focus();
+                    }).catch(e => {
+                        console.error('Purchase Failed', e.message);
+                        myGameInstance.SendMessage('YandexGame', 'OnPurchaseFailed', id);
+                        window.focus();
+                    })
+                } else {
+                    console.log('Payments == null');
+                }
+            } catch (e) {
+                console.error('CRASH Buy Payments: ', e.message);
+                window.focus();
+            }
+        }
+
+        function GetPayments() {
+            try {
+                if (payments != null) {
+                    payments.getCatalog()
+                        .then(products => {
+                            let productID = [];
+                            let title = [];
+                            let description = [];
+                            let imageURI = [];
+                            let priceValue = [];
+                            let consumed = [];
+
+                            payments.getPurchases().then(purchases => {
+                                for (let i = 0; i < products.length; i++) {
+                                    productID[i] = products[i].id;
+                                    title[i] = products[i].title;
+                                    description[i] = products[i].description;
+                                    imageURI[i] = products[i].imageURI;
+                                    priceValue[i] = products[i].priceValue;
+
+                                    consumed[i] = true;
+                                    for (i2 = 0; i2 < purchases.length; i2++) {
+                                        if (purchases[i2].productID === productID[i]) {
+                                            consumed[i] = false;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                let jsonPayments = {
+                                    "id": productID,
+                                    "title": title,
+                                    "description": description,
+                                    "imageURI": imageURI,
+                                    "priceValue": priceValue,
+                                    "consumed": consumed
+                                };
+
+                                myGameInstance.SendMessage('YandexGame', 'PaymentsEntries', JSON.stringify(jsonPayments));
+                            });
+                        });
+                }
+                else {
+                    console.log('Get Payments: payments == null');
+                }
+            } catch (e) {
+                console.error('CRASH Get Payments: ', e.message);
+            }
+        }
+
+        function ConsumePurchase(id) {
+            try {
+                if (payments != null) {
+                    payments.getPurchases().then(purchases => {
+                        for (i = 0; i < purchases.length; i++) {
+                            if (purchases[i].productID === id) {
+                                payments.consumePurchase(purchases[i].purchaseToken);
+                                myGameInstance.SendMessage('YandexGame', 'OnPurchaseSuccess', id);
+                            }
+                        }
+                    });
+                }
+                else console.log('Consume purchase: payments null');
+            } catch (e) {
+                console.error('CRASH Consume Purchase: ', e.message);
+            }
+        }
+
+        function ConsumePurchases() {
+            try {
+                if (payments != null) {
+                    payments.getPurchases().then(purchases => {
+                        console.log('Unprocessed purchases: ', purchases.length);
+                        for (i = 0; i < purchases.length; i++) {
+                            payments.consumePurchase(purchases[i].purchaseToken);
+                            myGameInstance.SendMessage('YandexGame', 'OnPurchaseSuccess', purchases[i].productID);
+                        }
+                    });
+                }
+                else console.log('Consume purchases: payments null');
+            } catch (e) {
+                console.error('CRASH Consume purchases: ', e.message);
+            }
+        }
+
+        function SaveCloud(jsonData, flush) {
+            try {
+                player.setData({
+                    saves: [jsonData],
+                }, flush);
+            } catch (e) {
+                console.error('CRASH Save Cloud: ', e.message);
+            }
+        }
+
+        function LoadCloud() {
+            try {
+                player.getData(["saves"]).then(data => {
+                    if (data.saves) {
+                        myGameInstance.SendMessage('YandexGame', 'SetLoadSaves', JSON.stringify(data.saves));
+                    } else {
+                        myGameInstance.SendMessage('YandexGame', 'SetLoadSaves', "noData");
+                    }
+                }).catch(() => {
+                    console.error('getData Error!');
+                    myGameInstance.SendMessage('YandexGame', 'SetLoadSaves', "noData");
+                });
+            } catch (e) {
+                console.error('CRASH Load saves Cloud: ', e.message);
+                myGameInstance.SendMessage('YandexGame', 'SetLoadSaves', "noData");
+            }
+        }
+
+        function InitLeaderboard() {
+            try {
+                ysdk.getLeaderboards().then(_lb => {
+                    leaderboard = _lb
+                    myGameInstance.SendMessage('YandexGame', 'InitializedLB');
+                });
+            } catch (e) {
+                console.error('CRASH Init Leaderboard: ', e.message);
+            }
+        }
+
+        function SetLeaderboardScores(_name, score) {
+            try {
+                ysdk.getLeaderboards()
+                    .then(leaderboard => {
+                        leaderboard.setLeaderboardScore(_name, score);
+                    });
+            } catch (e) {
+                console.error('CRASH Set Leader board Scores: ', e.message);
+            }
+        }
+
+        function GetLeaderboardScores(nameLB, maxPlayers, quantityTop, quantityAround, photoSize, auth) {
+            try {
+                var jsonEntries = {
+                    technoName: '',
+                    isDefault: false,
+                    isInvertSortOrder: false,
+                    decimalOffset: 0,
+                    type: '' // , title: ''
+                };
+
+                ysdk.getLeaderboards()
+                    .then(leaderboard => leaderboard.getLeaderboardDescription(nameLB))
+                    .then(res => {
+                        jsonEntries.technoName = nameLB;
+                        jsonEntries.isDefault = res.default;
+                        jsonEntries.isInvertSortOrder = res.description.invert_sort_order;
+                        jsonEntries.decimalOffset = res.description.score_format.options.decimal_offset;
+                        jsonEntries.type = res.description.type; // Не определяется на момент 18.07.23
+                        //jsonEntries.title = res.title; // Реализуйте по предпочтениям
+
+                        return leaderboard.getLeaderboardEntries(nameLB, {
+                            quantityTop: quantityTop,
+                            includeUser: auth,
+                            quantityAround: quantityAround
+                        });
+                    })
+                    .then(res => {
+                        let jsonPlayers = EntriesLB(res, maxPlayers, photoSize);
+                        let combinedJson = { ...jsonEntries, ...jsonPlayers };
+
+                        myGameInstance.SendMessage('YandexGame', 'LeaderboardEntries', JSON.stringify(combinedJson));
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            }
+            catch (e) {
+                console.error('CRASH Get Leaderboard: ', e.message);
+            }
+        }
+
+        function EntriesLB(res, maxPlayers, photoSize) {
+            let LeaderboardEntriesText = '';
+            let playersCount;
+
+            if (res.entries.length < maxPlayers) {
+                playersCount = res.entries.length;
+            } else {
+                playersCount = maxPlayers;
+            }
+
+            let ranks = new Array(playersCount);
+            let photos = new Array(playersCount);
+            let mames = new Array(playersCount);
+            let scores = new Array(playersCount);
+            let uniqueIDs = new Array(playersCount);
+
+            for (i = 0; i < playersCount; i++) {
+                ranks[i] = res.entries[i].rank;
+                scores[i] = res.entries[i].score;
+                uniqueIDs[i] = res.entries[i].player.uniqueID;
+
+                if (photoSize === 'nonePhoto' || res.entries[i].player.scopePermissions.avatar !== "allow") {
+                    photos[i] = 'nonePhoto';
+                } else {
+                    photos[i] = res.entries[i].player.getAvatarSrc(photoSize);
+                }
+
+                if (res.entries[i].player.scopePermissions.public_name !== "allow") {
+                    mames[i] = "anonymous";
+                } else {
+                    mames[i] = res.entries[i].player.publicName;
+                }
+
+                LeaderboardEntriesText += ranks[i] + '. ' + mames[i] + ": " + scores[i] + '\n';
+            }
+
+            if (playersCount === 0) {
+                LeaderboardEntriesText = 'no data';
+            }
+
+            let jsonPlayers = {
+                "entries": LeaderboardEntriesText,
+                "ranks": ranks,
+                "photos": photos,
+                "names": mames,
+                "scores": scores,
+                "uniqueIDs": uniqueIDs
+            };
+
+            return jsonPlayers;
+        }
+
+        function LanguageRequest() {
+            try {
+                myGameInstance.SendMessage('YandexGame', 'SetLanguage', ysdk.environment.i18n.lang);
+            } catch (e) {
+                console.error('CRASH Language Request: ', e.message);
+            }
+        }
+
+        function RequestingEnvironmentData() {
+            try {
+                let jsonEnvir = {
+                    "language": ysdk.environment.i18n.lang,
+                    "domain": ysdk.environment.i18n.tld,
+                    "deviceType": ysdk.deviceInfo.type,
+                    "isMobile": ysdk.deviceInfo.isMobile(),
+                    "isDesktop": ysdk.deviceInfo.isDesktop(),
+                    "isTablet": ysdk.deviceInfo.isTablet(),
+                    "isTV": ysdk.deviceInfo.isTV(),
+                    "appID": ysdk.environment.app.id,
+                    "browserLang": ysdk.environment.browser.lang,
+                    "payload": ysdk.environment.payload,
+                    "promptCanShow": promptCanShow,
+                    "reviewCanShow": reviewCanShow
+                };
+                myGameInstance.SendMessage('YandexGame', 'SetEnvironmentData', JSON.stringify(jsonEnvir));
+            } catch (e) {
+                console.error('CRASH Requesting Environment Data: ', e.message);
+            }
+        }
+
+        function Review() {
+            try {
+                ysdk.feedback.canReview()
+                    .then(({ value, reason }) => {
+                        if (value) {
+                            ysdk.feedback.requestReview().then(({ feedbackSent }) => {
+                                console.log('feedbackSent ', feedbackSent);
+                                if (feedbackSent) {
+                                    myGameInstance.SendMessage('YandexGame', 'ReviewSent', 'true');
+                                    console.log('Review left')
+                                }
+                                else {
+                                    myGameInstance.SendMessage('YandexGame', 'ReviewSent', 'false');
+                                    console.log('Review not left', reason)
+                                }
+                                window.focus();
+                            })
+                        }
+                        else {
+                            console.log('Review can show = false', reason);
+                            window.focus();
+                        }
+                    })
+            } catch (e) {
+                console.error('CRASH Review: ', e.message);
+                window.focus();
+            }
+        }
+
+        function PromptShow() {
+            try {
+                ysdk.shortcut.showPrompt()
+                    .then(result => {
+                        console.log('Shortcut created?:', result);
+                        if (result.outcome === 'accepted') {
+                            console.log('Prompt Success');
+                            myGameInstance.SendMessage('YandexGame', 'OnPromptSuccess');
+                        }
+                        else {
+                            myGameInstance.SendMessage('YandexGame', 'OnPromptFail');
+                        }
+                        window.focus();
+                    });
+            } catch (e) {
+                console.error('CRASH Prompt Show: ', e.message);
+                window.focus();
+            }
+        }
+
+        function PaintRBT(rbt) {
+            try {
+                document.getElementById(rbt).style.background = '#ff0000';
+            } catch (e) {
+                console.error('CRASH Paint RBT: ', e.message);
+            }
+        }
+
+        function StaticRBTDeactivate() {
+
+        }
+
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden') {
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = null;
+                }
+            }
+        });
+
+      document.body.appendChild(script);
+    </script>
+
+
+
+
+
+</content>
+</moduleprefs></module><script src="https://cdn.jsdelivr.net/gh/namesvalue-gmes/bg@main/Build//9853637125e801e9aae48e78dbbdcfca.loader.js"></script>
+<script src="blob:https://1214454300-atari-embeds.googleusercontent.com/badcf490-3422-49fe-88c0-3e67a7d9620b"></script></body></html>
