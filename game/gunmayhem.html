@@ -1,0 +1,138 @@
+<html lang="tr">
+<head>
+  <base target="_blank">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oyun Başlatıcı</title>
+  <style>
+    .play-button {
+      display: inline-block;
+      padding: 20px 40px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001;
+    }
+
+    .play-button:hover {
+      background-color: #4a148c !important;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+
+    .fullscreen-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1002;
+    }
+
+    .fullscreen-button:hover {
+      background-color: #4a148c !important;
+      transform: scale(1.05);
+    }
+
+    .content-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      border: none;
+      overflow: hidden;
+      z-index: 1000;
+      background-color: #000;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="contentContainer" class="content-container"></div>
+
+  <script>
+    const gameHTML = `
+    <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/AndreajnRcm4/b398dl2h74v@9a23fbb2373d743a564873251cbb57736ebc1f73/style.css" type="text/css" />
+    </head>
+    <body>
+    <script src="https://cdn.jsdelivr.net/gh/rus-classroom/google@main/ruffle.js"><\/script>
+    <object width="100%" height="100%">
+        <param name="movie" value="https://cdn.jsdelivr.net/gh/filesmabex/z3x4@main/gun-mayhem.swf">
+        <embed src="https://cdn.jsdelivr.net/gh/filesmabex/z3x4@main/gun-mayhem.swf" width="100%" height="100%">
+    </body>
+    </html>
+    `.trim();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      showContent(); // Otomatik olarak oyunu başlat
+    });
+
+    function showContent() {
+      try {
+        const container = document.getElementById('contentContainer');
+        container.style.display = 'block';
+
+        const blob = new Blob([gameHTML], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+
+        const iframe = document.createElement('iframe');
+        iframe.src = blobUrl;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';       /* Remove any borders */
+        iframe.style.margin = '0';          /* Remove margins */
+        iframe.style.padding = '0';         /* Remove padding */
+        iframe.style.outline = 'none';      /* Remove any outline */
+        iframe.style.boxShadow = 'none';    /* Remove any box shadow that might look like a border */
+
+        container.appendChild(iframe);
+
+        iframe.onload = () => console.log('Oyun yüklendi');
+        iframe.onerror = (e) => console.error('Oyun yüklenirken hata:', e);
+      } catch (error) {
+        console.error('Hata oluştu:', error);
+        alert('Oyun yüklenemedi. Tarayıcı konsolunu kontrol edin.');
+      }
+    }
+  </script>
+</body>
+</html>
