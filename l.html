@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://unblockedgames-tech.github.io/logo.png" type="image/png">
     <title>Math Forever</title>
     <style>
         body, html {
@@ -22,7 +21,7 @@
     </style>
 </head>
 <body>
-    <iframe id="myIframe" sandbox="allow-scripts allow-same-origin"></iframe>
+    <iframe id="myIframe"></iframe>
 
     <script>
         function encodeBase64(str) {
@@ -54,6 +53,29 @@
                 document.getElementById('myIframe').src = userUrl; // Load the URL in iframe
             }
         }
+
+        // Disable right-click on the main page, but allow it inside the iframe
+        document.addEventListener("contextmenu", function(event) {
+            if (!event.target.closest("iframe")) { // Prevent right-click only outside the iframe
+                event.preventDefault();
+            }
+        });
+
+        // Disable DevTools shortcuts
+        document.addEventListener("keydown", function(event) {
+            if (event.ctrlKey && event.shiftKey && event.key === 'I') { // Ctrl + Shift + I
+                event.preventDefault();
+            }
+            if (event.key === 'F12') { // F12
+                event.preventDefault();
+            }
+            if (event.ctrlKey && event.shiftKey && event.key === 'J') { // Ctrl + Shift + J
+                event.preventDefault();
+            }
+            if (event.ctrlKey && event.key === 'U') { // Ctrl + U (View Source)
+                event.preventDefault();
+            }
+        });
     </script>
 </body>
 </html>
