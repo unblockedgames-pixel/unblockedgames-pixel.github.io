@@ -1,23 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Forever</title>
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Forever</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden; /* Prevent scrollbars on body too */
+    }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
+    iframe {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      overflow: hidden;
+      display: block;
+    }
+
+    #fullscreenBtn {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      background: transparent;
+      z-index: 9999;
+      cursor: pointer;
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <iframe src="https://bloxd.io/"></iframe>
+  <button id="fullscreenBtn"></button>
+  <iframe src="https://bloxd.io/" scrolling="no"></iframe>
+
+  <script>
+    const btn = document.getElementById("fullscreenBtn");
+
+    function requestFullscreen() {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    }
+
+    btn.addEventListener("click", () => {
+      requestFullscreen();
+      btn.style.display = "none";
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) {
+        btn.style.display = "block";
+      }
+    });
+
+    document.addEventListener("webkitfullscreenchange", () => {
+      if (!document.webkitFullscreenElement) {
+        btn.style.display = "block";
+      }
+    });
+
+    document.addEventListener("msfullscreenchange", () => {
+      if (!document.msFullscreenElement) {
+        btn.style.display = "block";
+      }
+    });
+  </script>
 </body>
 </html>
