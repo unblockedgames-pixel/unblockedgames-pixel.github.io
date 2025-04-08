@@ -1,0 +1,546 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atomic Survival</title>
+    <style>
+    @keyframes zoom {
+  0% {
+    transform: scale(0.1);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: content-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: black;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: none;
+  height: 100vh;
+  background-color: rgb(20, 20, 20);
+}
+
+#game-container {
+  color: white;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  animation: none;
+}
+
+img {
+  width: 35px;
+  animation: 0.5s ease-in-out 0s 1 zoom;
+  margin-right: 10px;
+}
+
+#clickButton {
+  padding-block: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  width: 230px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  margin-block: 30px;
+  transition: box-shadow 0.1s ease, transform 0.1s ease,
+    background-color 0.3s ease;
+  animation: 0.5s ease-in-out 0s 1 zoom;
+  box-shadow: 3px 3px 5px green;
+  position: relative;
+}
+
+#clickButton:hover {
+  background-color: #45a049;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bottom {
+  display: flex;
+  gap: 30px;
+  margin-top: 10px;
+}
+
+.bottom-btn {
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  height: 50px;
+  padding-inline: 20px;
+  background-color: rgb(40, 40, 40);
+  animation: 0.5s ease-in-out 0s 1 zoom;
+}
+
+.bottom-btn img {
+  width: 30px;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 20px;
+  align-items: center;
+  flex-direction: column;
+  animation: 0.5s ease-in-out 0s 1 zoom;
+  gap: 10px;
+}
+
+.other-stats {
+  display: flex;
+  gap: 30px;
+  flex-direction: row;
+  animation: 0.5s ease-in-out 0s 1 zoom;
+}
+
+#energy {
+  font-size: 30px;
+  font-weight: bold;
+}
+
+h1 {
+  font-size: 40px;
+  margin-block: 0px;
+  margin-bottom: 50px;
+  animation: 0.5s ease-in-out 0s 1 zoom;
+}
+
+.popup-drop {
+  width: 100vw;
+  height: 100vh;
+  backdrop-filter: blur(5px);
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 0;
+  visibility: hidden;
+  left: 0;
+  transition: opacity 0.3s ease;
+  z-index: 100;
+}
+
+.popup {
+  width: 350px;
+  height: 400px;
+  background-color: black;
+  border-radius: 20px;
+  border: 3px solid rgb(40, 40, 40);
+  display: flex;
+  flex-direction: column;
+  color: white;
+  padding-inline: 30px;
+  position: relative;
+  overflow: auto;
+}
+
+.popup-title {
+  text-align: center;
+  padding-block: 30px;
+  font-size: 30px;
+}
+
+.popup-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 20px;
+  cursor: pointer;
+  padding: 0;
+  animation: none;
+  transition: transform 0.3s ease;
+}
+
+.popup-close:hover {
+  transform: scale(1.3);
+}
+
+.popup-close::before,
+.upgrade-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  align-items: center;
+}
+
+.upgrade-title {
+  font-weight: bold;
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.upgrade-btn {
+  background-color: rgb(40, 40, 40);
+  border-radius: 5px;
+  padding-inline: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  height: 40px;
+}
+
+.version,
+#reset {
+  color: gray;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+#reset {
+  left: 10px;
+  cursor: pointer;
+}
+
+#reset:hover {
+  text-decoration: underline;
+}
+
+#gold-atom {
+  width: 60px;
+  position: absolute;
+  cursor: pointer;
+  visibility: hidden;
+  width: 60px;
+  padding: 10px;
+  border-radius: 100px;
+  height: 60px;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+}
+
+.gold-atom {
+  width: 100%;
+  height: 100%;
+}
+    </style>
+    <link rel="shortcut icon" href="https://io-games-2025.github.io/originals/atomic/assets/logo.png" type="image/x-icon" />
+  </head>
+  <body>
+    <div id="game-container">
+      <div class="top">
+        <h1>Atomic Survival</h1>
+        <div class="stats">
+          <div id="energy">Energy: 0</div>
+          <div class="other-stats">
+            <div id="atoms">Atoms: 0</div>
+            <div id="eps">Energy/sec: 0.0</div>
+            <div id="apc">Atoms/click: 1</div>
+            <div id="aps">Atoms/sec: 0</div>
+          </div>
+        </div>
+        <button id="clickButton"><img src="https://io-games-2025.github.io/originals/atomic/assets/atom.svg" />Get Atom</button>
+      </div>
+      <div class="bottom">
+        <div class="bottom-btn">Coming Soon</div>
+        <div class="bottom-btn" id="upgrades">
+          <img src="https://io-games-2025.github.io/originals/atomic/assets/upgrade.svg" />Upgrades
+        </div>
+        <div class="bottom-btn">Coming Soon</div>
+      </div>
+    </div>
+    <div class="popup-drop" id="popup">
+      <div class="popup">
+        <img src="https://io-games-2025.github.io/originals/atomic/assets/close.svg" class="popup-close" id="popup-close" />
+        <h2 class="popup-title">Upgrades</h2>
+        <div class="upgrade-item">
+          <div class="upgrade-info">
+            <div class="upgrade-title">Better Reactor</div>
+            <div class="upgrade-description">
+              Each atom gives 10% more energy/sec.
+            </div>
+          </div>
+          <div class="upgrade-btn" id="up1">200</div>
+        </div>
+        <div class="upgrade-item">
+          <div class="upgrade-info">
+            <div class="upgrade-title">Atomic Surge</div>
+            <div class="upgrade-description">Gain one more atom per click.</div>
+          </div>
+          <div class="upgrade-btn" id="up2">500</div>
+        </div>
+        <div class="upgrade-item">
+          <div class="upgrade-info">
+            <div class="upgrade-title">Generation Tech</div>
+            <div class="upgrade-description">
+              Gain one more atom per second.
+            </div>
+          </div>
+          <div class="upgrade-btn" id="up3">1000</div>
+        </div>
+        <h2 style="text-align: center; margin-block: 30px">
+          More coming soon!
+        </h2>
+      </div>
+    </div>
+    <div class="version">v.0.2.0 | 7/16/2024</div>
+    <div id="reset">Reset Progress</div>
+    <div id="gold-atom">
+      <img src="https://io-games-2025.github.io/originals/atomic/assets/golden-atom.png" class="gold-atom" />
+    </div>
+    <script>let energy = 0;
+let energyPerSec = 0;
+let atoms = 0;
+let atomValue = 0.5;
+let atomsPerClick = 1;
+let atomsPerSecond = 0;
+let btn = document.getElementById("clickButton");
+let atomsE = document.getElementById("atoms");
+let energyE = document.getElementById("energy");
+let energyPerSecE = document.getElementById("eps");
+let atomsPerClickE = document.getElementById("apc");
+let atomsPerSecondE = document.getElementById("aps");
+let upgradeBtn = document.getElementById("upgrades");
+let popup = document.getElementById("popup");
+let popupClose = document.getElementById("popup-close");
+let upgradeBtns = document.querySelectorAll(".upgrade-btn");
+let up1 = document.getElementById("up1");
+let up2 = document.getElementById("up2");
+let up3 = document.getElementById("up3");
+let progress = localStorage.getItem("atomic-survival-progress");
+let goldAtomE = document.getElementById("gold-atom");
+let resetBtn = document.getElementById("reset");
+
+if (progress) {
+  savedArray = progress.split(",");
+  let loadGameTime = new Date().getTime();
+  let saveGameTime = parseInt(savedArray[0]);
+  let timeDifference = loadGameTime - saveGameTime;
+  let secondDifference = timeDifference / 1000;
+  energy = parseInt(savedArray[1]);
+  atoms = parseInt(savedArray[3]);
+  energyPerSec = parseFloat(savedArray[2]);
+  atomsPerSecond = parseInt(savedArray[8]);
+  atomValue = parseFloat(savedArray[4]);
+  atomsPerClick = parseInt(savedArray[5]);
+  let totalIdleIncome = Math.floor(secondDifference * energyPerSec);
+  let totalIdleAtoms = Math.floor(secondDifference * atomsPerSecond);
+  atoms += totalIdleAtoms;
+  energyPerSec += totalIdleAtoms * atomValue;
+  energy += totalIdleIncome;
+  alert(
+    `While you were away, you earned ${totalIdleIncome} energy and generated ${totalIdleAtoms} new atoms!`
+  );
+  up1.innerHTML = parseInt(savedArray[6]);
+  up2.innerHTML = parseInt(savedArray[7]);
+  up3.innerHTML = parseInt(savedArray[9]);
+  atomsPerClickE.innerHTML = `Atoms/click: ${atomsPerClick}`;
+  energyPerSecE.innerHTML = `Energy/sec: ${energyPerSec.toFixed(1)}`;
+  energyE.innerHTML = `Energy: ${Math.floor(energy)}`;
+  atomsE.innerHTML = `Atoms: ${atoms}`;
+  atomsPerSecondE.innerHTML = `Atoms/sec: ${atomsPerSecond}`;
+  if (atomsPerClick > 1) {
+    btn.innerHTML = `<img src="assets/atom.svg" />Get Atoms`;
+  }
+}
+
+up1.addEventListener("click", () => {
+  if (energy >= up1.innerHTML) {
+    energy -= up1.innerHTML;
+    up1.innerHTML *= 5;
+    energyPerSec += (atoms * 0.1) / 2;
+    atomValue *= 1.1;
+  }
+  checkUpgradable();
+});
+
+up2.addEventListener("click", () => {
+  if (energy >= up2.innerHTML) {
+    energy -= up2.innerHTML;
+    up2.innerHTML *= 5;
+    atomsPerClick++;
+    btn.innerHTML = `<img src="assets/atom.svg" />Get Atoms`;
+  }
+  checkUpgradable();
+});
+
+up3.addEventListener("click", () => {
+  if (energy >= up3.innerHTML) {
+    energy -= up3.innerHTML;
+    up3.innerHTML *= 5;
+    atomsPerSecond++;
+    atomsPerSecondE.innerHTML = `Atoms/sec: ${atomsPerSecond}`;
+  }
+  checkUpgradable();
+});
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === " ") {
+    btn.style.transform = "translate(1px, 1px)";
+    btn.style.boxShadow = "none";
+  }
+});
+document.addEventListener("keyup", function (e) {
+  if (e.key === " ") {
+    newAtom();
+    btn.style.transform = "translate(0px, 0px)";
+    btn.style.boxShadow = "3px 3px 5px green";
+  }
+});
+btn.addEventListener("mousedown", function () {
+  btn.style.transform = "translate(1px, 1px)";
+  btn.style.boxShadow = "none";
+});
+
+document.addEventListener("mouseup", function (e) {
+  if (e.target === btn) {
+    newAtom();
+    btn.style.transform = "translate(0px, 0px)";
+    btn.style.boxShadow = "3px 3px 5px green";
+  } else {
+    if ((btn.style.transform = "translate(-1px, -1px)")) {
+      btn.style.transform = "translate(0px, 0px)";
+      btn.style.boxShadow = "3px 3px 5px green";
+    }
+  }
+});
+
+upgradeBtn.addEventListener("click", () => {
+  popup.style.visibility = "visible";
+  popup.style.opacity = "1";
+});
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("popup-drop") || e.target === popupClose) {
+    popup.style.opacity = "0";
+    popup.style.visibility = "hidden";
+  }
+});
+
+resetBtn.addEventListener("click", () => {
+  if (
+    confirm(
+      "Are you sure you want to reset your progress on Atomic Survival? This is NOT a prestige and will wipe everything from the game!"
+    )
+  ) {
+    clearInterval(progressSaving);
+    localStorage.removeItem("atomic-survival-progress");
+    window.location.reload();
+  }
+});
+
+function newAtom() {
+  atoms += atomsPerClick;
+  energyPerSec += atomValue * atomsPerClick;
+  atomsE.innerHTML = `Atoms: ${atoms}`;
+}
+
+function newEnergy() {
+  energy += energyPerSec;
+  atomsPerClickE.innerHTML = `Atoms/click: ${atomsPerClick}`;
+  energyPerSecE.innerHTML = `Energy/sec: ${energyPerSec.toFixed(1)}`;
+  energyE.innerHTML = `Energy: ${Math.floor(energy)}`;
+  checkUpgradable();
+}
+
+function autoAtom() {
+  atoms += atomsPerSecond;
+  energyPerSec += atomValue * atomsPerSecond;
+  atomsE.innerHTML = `Atoms: ${atoms}`;
+}
+
+function checkUpgradable() {
+  upgradeBtns.forEach((item) => {
+    if (energy >= item.innerHTML) {
+      item.style.backgroundColor = "green";
+    } else {
+      item.style.backgroundColor = "rgb(40,40,40)";
+    }
+  });
+}
+
+function saveProgress() {
+  let time = new Date().getTime();
+  let progressArray = [
+    time,
+    energy,
+    energyPerSec,
+    atoms,
+    atomValue,
+    atomsPerClick,
+    up1.innerHTML,
+    up2.innerHTML,
+    atomsPerSecond,
+    up3.innerHTML,
+  ];
+  localStorage.setItem("atomic-survival-progress", progressArray.join(","));
+}
+
+function goldAtom() {
+  let onOff = Math.round(Math.random() * 2);
+  let screenWidth = window.innerWidth - 200;
+  let screenHeight = window.innerHeight - 200;
+  let randomWidth = Math.round(Math.random() * screenWidth) + 100;
+  let randomHeight = Math.round(Math.random() * screenHeight) + 100;
+  if (onOff === 0) {
+    goldAtomE.style.visibility = "visible";
+    goldAtomE.style.top = randomHeight + "px";
+    goldAtomE.style.left = randomWidth + "px";
+    goldAtomE.onclick = () => {
+      let random = Math.round(Math.random());
+      if (random === 0) {
+        if (energyPerSec === 0) {
+          energy += 100;
+        } else {
+          energy += Math.floor(energyPerSec * 100);
+        }
+        goldAtomE.innerHTML = `Energy +${Math.floor(energyPerSec * 100)}`;
+      } else {
+        atoms += Math.floor(atomsPerClick * 100);
+        energyPerSec += atomValue * atomsPerClick * 100;
+        atomsE.innerHTML = `Atoms: ${atoms}`;
+        goldAtomE.innerHTML = `Atoms +${Math.floor(atomsPerClick * 100)}`;
+      }
+      setTimeout(() => {
+        goldAtomE.style.visibility = "hidden";
+        goldAtomE.innerHTML = `<img src="assets/golden-atom.png" class="gold-atom" />`;
+      }, 1500);
+    };
+    setTimeout(() => {
+      goldAtomE.style.visibility = "hidden";
+    }, 5000);
+  }
+}
+
+setInterval(newEnergy, 1000);
+setInterval(autoAtom, 1000);
+let progressSaving = setInterval(saveProgress, 1000);
+setInterval(goldAtom, 10000);</script>
+  </body>
+</html>
