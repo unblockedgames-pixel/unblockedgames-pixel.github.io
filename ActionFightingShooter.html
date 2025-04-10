@@ -228,23 +228,7 @@
 
     </div>
     <script>
-                // Check if 'viewerCount' is already stored in localStorage
-        if (localStorage.getItem('viewerCount')) {
-            let count = parseInt(localStorage.getItem('viewerCount'));
-            count++;  // Increment count for each page visit
-            localStorage.setItem('viewerCount', count);  // Update the count in localStorage
-        } else {
-            // If it's the first time, set initial count to 1
-            localStorage.setItem('viewerCount', 1);
-        }
 
-        // Display the updated viewer count
-        const viewerCount = localStorage.getItem('viewerCount');
-        document.getElementById('viewer-count').innerText = `You Have Viewed: ${viewerCount} times`;
-        document.getElementById('settingsButton').addEventListener('click', function() {
-            const dropdown = document.getElementById('themeDropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        });
 
         
         function changeTheme(theme) {
@@ -367,12 +351,6 @@ function openBlobUrl(url) {
 
         
 
-        const popup = document.getElementById('popup');
-        const closeButton = document.querySelector('.close-button');
-
-        closeButton.onclick = () => {
-          popup.style.display = 'none'; 
-        };
 
         
           document.getElementById('funnyshooter2').addEventListener('click', () => openBlobUrl('l#url=aHR0cHM6Ly9pbWFhZ2VzLW9wZW5zb2NpYWwuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2dhZGdldHMvaWZyP3VybD1odHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvZ2gvd2VyZ2JveS9NZXRlb3JAZDg3ZTkzZDIyYmE4YjZiMTc2MTdiYzdiZDYzMWQ1YTc4ZjIxMDA5OC9leGFtcGxlcy9yZWFjdC1pbi1ibGF6ZS9mczIueG1sJmNvbnRhaW5lcj1pZw=='));
