@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Forever</title>
+    <style>
+        html, body, iframe {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        iframe {
+            display: block;
+        }
+    </style>
+    <script>
+        // Reload the outer page while preserving the iframe's state
+        setInterval(() => {
+            const iframe = document.getElementById('iframe');
+            const iframeSrc = iframe.src; // Save iframe's source
+            sessionStorage.setItem('iframeSrc', iframeSrc); // Save iframe's source to sessionStorage
+            window.location.reload(); // Reload the entire page
+        }, 100);
+
+        // Restore the iframe's state after page reload
+        window.onload = () => {
+            const iframe = document.getElementById('iframe');
+            const savedSrc = sessionStorage.getItem('iframeSrc');
+            if (savedSrc) {
+                iframe.src = savedSrc; // Restore the iframe's source
+            }
+        };
+    </script>
+</head>
+<body>
+    <iframe src="https://unblockedgames-pixel.github.io/back1" id="iframe" name="iframe"></iframe>
+</body>
+</html>
