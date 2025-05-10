@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Inject Iframe in about:blank</title>
+  <title>Redirecting to about:blank with iframe</title>
   <script>
-    // Open about:blank in the same tab and immediately inject content
+    // Immediately replace current tab with about:blank and inject iframe
     window.onload = () => {
-      const win = window.open('about:blank', '_self'); // Open in the same tab
-      
-      // Ensure we write to the new about:blank page before it fully loads
+      const win = window.open('about:blank', '_self'); // Open about:blank in same tab
+
+      // Inject full HTML with iframe
       win.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
+          <title>Iframe in about:blank</title>
           <style>
             html, body {
               margin: 0;
-              padding: 0;
               height: 100%;
               overflow: hidden;
             }
             iframe {
-              width: 100%;
-              height: 100%;
               border: none;
+              width: 100vw;
+              height: 100vh;
             }
           </style>
         </head>
@@ -36,7 +36,6 @@
   </script>
 </head>
 <body>
-  <p>Clicking this will redirect and inject an iframe:</p>
-  <button onclick="window.location.reload();">Trigger</button>
+  <p>Redirecting to about:blank...</p>
 </body>
 </html>
