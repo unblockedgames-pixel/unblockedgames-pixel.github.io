@@ -1,34 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>Inject Iframe in about:blank</title>
   <script>
-    // Only works if run from a user interaction (e.g., button click)
-    const win = window.open('about:blank', '_self'); // current tab
-    win.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          html, body {
-            margin: 0;
-            height: 100%;
-            overflow: hidden;
-          }
-          iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-          }
-        </style>
-      </head>
-      <body>
-        <iframe src="back2"></iframe>
-      </body>
-      </html>
-    `);
-    win.document.close();
+    // Open about:blank in the same tab and immediately inject content
+    window.onload = () => {
+      const win = window.open('about:blank', '_self'); // Open in the same tab
+      
+      // Ensure we write to the new about:blank page before it fully loads
+      win.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            html, body {
+              margin: 0;
+              padding: 0;
+              height: 100%;
+              overflow: hidden;
+            }
+            iframe {
+              width: 100%;
+              height: 100%;
+              border: none;
+            }
+          </style>
+        </head>
+        <body>
+          <iframe src="back2"></iframe>
+        </body>
+        </html>
+      `);
+      win.document.close();
+    };
   </script>
 </head>
 <body>
+  <p>Clicking this will redirect and inject an iframe:</p>
+  <button onclick="window.location.reload();">Trigger</button>
 </body>
 </html>
