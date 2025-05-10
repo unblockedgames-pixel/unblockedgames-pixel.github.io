@@ -1,37 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Redirecting...</title>
   <script>
-    // Redirect to about:blank and inject iframe
-    const doc = document.open("text/html", "replace");
-    doc.write(`
+    // Only works if run from a user interaction (e.g., button click)
+    const win = window.open('about:blank', '_self'); // current tab
+    win.document.write(`
       <!DOCTYPE html>
       <html>
       <head>
         <style>
           html, body {
             margin: 0;
-            padding: 0;
             height: 100%;
             overflow: hidden;
           }
           iframe {
+            width: 100%;
+            height: 100%;
             border: none;
-            width: 100vw;
-            height: 100vh;
           }
         </style>
       </head>
       <body>
-        <iframe src="https://example.com"></iframe>
+        <iframe src="back2"></iframe>
       </body>
       </html>
     `);
-    doc.close();
+    win.document.close();
   </script>
 </head>
 <body>
-  Redirecting...
 </body>
 </html>
