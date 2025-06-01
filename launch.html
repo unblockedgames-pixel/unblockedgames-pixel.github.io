@@ -1,38 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Math Forever</title>
+  <title>Redirecting...</title>
   <script>
-    function goToCustomBlank() {
-      const newDoc = window.open('about:blank', '_self'); // replace current tab with about:blank
-
-      newDoc.document.write(`
+    window.onload = function() {
+      // Replace current document content with custom about:blank-like page
+      document.open();
+      document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Math Forever</title>
+          <title>Blank with iframe</title>
+          <style>
+            html, body { margin: 0; height: 100%; overflow: hidden; }
+            iframe { width: 100%; height: 100%; border: none; }
+          </style>
           <script>
             window.onbeforeunload = function () {
               return "Are you sure you want to leave this page?";
             };
           <\/script>
-          <style>
-            html, body { margin: 0; height: 100%; overflow: hidden; }
-            iframe { width: 100%; height: 100%; border: none; }
-          </style>
         </head>
         <body>
-          <iframe src="https://unblockedgames-pixel.github.io/back2"></iframe>
-        </body>
-        </html>
-      `);
-      newDoc.document.close();
-    }
+          <iframe srcdoc='
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                html, body {
+                  margin: 0;
+                  height: 100%;
+                  overflow: hidden;
+                }
+                iframe {
+                  width: 100vw;
+                  height: 100vh;
+                  border: none;
+                  display: block;
+                }
+              </style>
+            </head>
+            <body>
+              <iframe src="/back2"></iframe>
+            </body>
+            </html>
 
-    window.onload = goToCustomBlank;
+      `);
+      document.close();
+    };
   </script>
 </head>
 <body>
-  <p>If you see this, the script didn't run.</p>
+  <p>If you see this text, JavaScript did not run.</p>
 </body>
 </html>
