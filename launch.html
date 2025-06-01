@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Math Forever</title>
+  <script>
+    function goToCustomBlank() {
+      const newDoc = window.open('about:blank', '_self'); // replace current tab with about:blank
+
+      newDoc.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Math Forever</title>
+          <script>
+            window.onbeforeunload = function () {
+              return "Are you sure you want to leave this page?";
+            };
+          <\/script>
+          <style>
+            html, body { margin: 0; height: 100%; overflow: hidden; }
+            iframe { width: 100%; height: 100%; border: none; }
+          </style>
+        </head>
+        <body>
+          <iframe src="back2"></iframe>
+        </body>
+        </html>
+      `);
+      newDoc.document.close();
+    }
+
+    window.onload = goToCustomBlank;
+  </script>
+</head>
+<body>
+  <p>If you see this, the script didn't run.</p>
+</body>
+</html>
