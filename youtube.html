@@ -1,111 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Forever</title>
-    <style>
-        /* Full-page styling */
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #111;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-
-        /* Preloader container */
-        #loader {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: #111;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        /* Loading text */
-        #loadingText {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        /* Loading bar container */
-        .loading-bar-container {
-            width: 50%;
-            height: 8px;
-            background: #333;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        /* Loading bar */
-        .loading-bar {
-            width: 0%;
-            height: 100%;
-            background: #4caf50;
-            border-radius: 4px;
-        }
-
-        /* Main iframe (hidden initially) */
-        #mainIframe {
-            width: 100vw;
-            height: 100vh;
-            border: none;
-            display: none; /* Hidden initially */
-            opacity: 0;
-            transition: opacity 1s ease-in;
-        }
-
-        /* Off-screen iframe */
-        #hiddenIframe {
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-            width: 1px;
-            height: 1px;
-            visibility: hidden;
-        }
-    </style>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    iframe {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <!-- Preloader -->
-    <div id="loader">
-        <div id="loadingText">Math Forever...</div>
-        <div class="loading-bar-container">
-            <div class="loading-bar" id="progressBar"></div>
-        </div>
-    </div>
-
-    <!-- Main iframe -->
-    <iframe id="mainIframe" src="https://play.szvy.win/szvy/szvy/aHR0cHM6Ly93d3cueW91dHViZS5jb20vc2hvcnRz"></iframe>
-
-    <!-- Hidden iframe -->
-    <iframe id="hiddenIframe" src="https://play.szvy.win/embed.html#https://www.youtube.com/shorts"></iframe>
-
-    <script>
-        // Gradually increase the width of the loading bar over 5 seconds
-        let progress = 0;
-        let interval = setInterval(() => {
-            progress += 1;
-            document.getElementById('progressBar').style.width = progress + "%";
-            if (progress >= 100) clearInterval(interval);
-        }, 50); // Updates every 50ms (5 seconds total)
-
-        // Show the main iframe after 5 seconds
-        setTimeout(() => {
-            document.getElementById('loader').style.display = 'none';
-            let iframe = document.getElementById('mainIframe');
-            iframe.style.display = 'block';
-            iframe.style.opacity = '1';
-        }, 5000);
-    </script>
+  <iframe src="https://play.szvy.win/"></iframe>
 </body>
 </html>
