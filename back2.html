@@ -441,6 +441,13 @@
           <button class="cool-button" id="zomoutare"><img src="https://lh3.googleusercontent.com/xR44nu6Cj4wzcONcBTwMM1yC9HnKM21f0G6hMC7doRlUSs6EJwgz5mhkfY8cmUv6xmrCQ3witF60enkxGl2szTnmbw=s1280-w1280-h800" width="75%" height="40%"><br>zombie outbreak arena</button>
 
     </div>
+  <script>
+    window.addEventListener('beforeunload', function (e) {
+      // Modern browsers may ignore the custom message
+      e.preventDefault(); // Required in some browsers
+      e.returnValue = ''; // Shows a confirmation dialog
+    });
+  </script>
     <script>
                 // Check if 'viewerCount' is already stored in localStorage
         if (localStorage.getItem('viewerCount')) {
