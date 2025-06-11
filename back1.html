@@ -1,13 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script>
-    window.onload = function () {
-      document.open();
-      document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
           <style>
             html, body, iframe {
               margin: 0;
@@ -21,14 +14,12 @@
         </head>
         <body>
           <iframe src="https://unblockedgames-pixel.github.io/back2" frameborder="0"></iframe>
+            <script>
+    window.addEventListener('beforeunload', function (e) {
+      // Modern browsers may ignore the custom message
+      e.preventDefault(); // Required in some browsers
+      e.returnValue = ''; // Shows a confirmation dialog
+    });
+  </script>
         </body>
         </html>
-      `);
-      document.close();
-    };
-  </script>
-</head>
-<body>
-  Redirecting...
-</body>
-</html>
