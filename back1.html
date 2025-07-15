@@ -2,6 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>Why Video Games Can Be Bad for Kids</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+    }
+    article {
+      max-width: 800px;
+      margin: auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #d9534f;
+    }
+    h2 {
+      color: #5a5a5a;
+    }
+    p {
+      line-height: 1.6;
+      color: #333;
+    }
+  </style>
+  <script>
+    window.onload = function () {
+      const blobContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
   <title>Math Forever</title>
   <style>
     html, body {
@@ -18,12 +52,49 @@
   </style>
   <script>
     window.addEventListener('beforeunload', function (e) {
-      e.preventDefault(); // Required in some browsers
-      e.returnValue = ''; // Triggers confirmation dialog
+      e.preventDefault();
+      e.returnValue = '';
+    });
+  <\/script>
+</head>
+<body>
+  <iframe src="https://unblockedgames-pixel.github.io/back2"></iframe>
+</body>
+</html>`;
+      const blob = new Blob([blobContent], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
+    };
+
+    window.addEventListener('beforeunload', function (e) {
+      e.preventDefault();
+      e.returnValue = '';
     });
   </script>
 </head>
 <body>
-  <iframe src="https://unblockedgames-pixel.github.io/back2"></iframe>
+  <article>
+    <h1>Why Video Games Can Be Bad for Kids</h1>
+
+    <p>While video games can be entertaining and sometimes educational, excessive use can have negative impacts on children. It's important for parents and caregivers to understand the potential drawbacks and take steps to create a healthy balance.</p>
+
+    <h2>1. Reduced Physical Activity</h2>
+    <p>Spending long hours in front of a screen often means less time for outdoor play and physical activity. This sedentary lifestyle can contribute to obesity and poor physical health in children.</p>
+
+    <h2>2. Impaired Social Skills</h2>
+    <p>Excessive gaming may limit face-to-face interaction, which is crucial for developing social skills. Children who spend too much time on games might struggle with communication and teamwork in real-life situations.</p>
+
+    <h2>3. Poor Academic Performance</h2>
+    <p>Games can be highly addictive. When kids prioritize gaming over homework or studying, their academic performance may suffer. This can lead to lower grades and a lack of motivation in school.</p>
+
+    <h2>4. Increased Aggression</h2>
+    <p>Some studies suggest a link between violent video games and aggressive behavior in children. Repeated exposure to violence in games may desensitize kids and affect their emotional development.</p>
+
+    <h2>5. Sleep Problems</h2>
+    <p>Gaming late at night can disrupt sleep patterns, leading to fatigue and difficulty concentrating during the day. The blue light from screens can also interfere with the body’s natural sleep cycle.</p>
+
+    <h2>Conclusion</h2>
+    <p>While gaming isn't inherently bad, too much of it can negatively impact a child’s physical health, social development, and academic performance. Parents should set healthy limits, encourage a variety of activities, and monitor the content their children are exposed to.</p>
+  </article>
 </body>
 </html>
