@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML Editor with Auto-Save</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    textarea {
+      width: 100%;
+      height: 50vh;
+      font-family: monospace;
+      font-size: 16px;
+      padding: 10px;
+      border: none;
+      border-bottom: 2px solid #ccc;
+      resize: none;
+      outline: none;
+    }
+
+    iframe {
+      flex-grow: 1;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <textarea id="editor" placeholder="Type your HTML here..."></textarea>
+  <iframe id="preview"></iframe>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+    const storageKey = 'htmlEditorContent';
+
+    // Load saved content
+    const savedContent = localStorage.getItem(storageKey);
+    if (savedContent) {
+      editor.value = savedContent;
+    } else {
+      editor.value = `<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Hello, world!</h1>
+    <p>This is a live preview editor.</p>
+  </body>
+</html>`;
+    }
+
+    function updatePreview() {
+      const content = editor.value;
+      preview.srcdoc = content;
+      localStorage.setItem(storageKey, content); // Auto-save
+    }
+
+    editor.addEventListener('input', updatePreview);
+
+    // Initialize preview on load
+    updatePreview();
+  </script>
+
+</body>
+</html>
