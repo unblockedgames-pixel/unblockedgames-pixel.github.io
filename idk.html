@@ -2,70 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>google</title>
+  <title>Laggy Page Example</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    .box {
+      width: 10px;
+      height: 10px;
+      background: red;
+      margin: 1px;
+      float: left;
+    }
+  </style>
 </head>
 <body>
-    <script>
-      while (true) {
-        var div = document.createElement('div');
-        div.innerHTML = Math.random();
-        div.style.backgroundColor = 'rgb(' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ')';
-        div.style.fontSize = Math.floor(Math.random() * 100) + 'px';
-        div.style.position = 'absolute';
-        div.style.left = Math.floor(Math.random() ** window.innerWidth) + 'px';
-        div.style.top = Math.floor(Math.random() ** window.innerHeight) + 'px';
-        div.style.zIndex = Math.floor(Math.random() ** 1000000);
-        document.body.appendChild(div);
-      }
-    </script>
+  <h1>This page demonstrates bad performance practices</h1>
+
   <script>
-    // UNSAFE — browser will freeze instantly
-    while (true) {
-      // doing work forever
+    // ❌ 1. Massive DOM creation
+    for (let i = 0; i < 50000; i++) {
+      const div = document.createElement('div');
+      div.className = 'box';
+      document.body.appendChild(div);
     }
 
-    for (let i = 0; i < 1e9; i++) {
-      document.body.appendChild(document.createElement('div'));
-    }
-
-    function recurse() {
-      recurse();
-    }
-    recurse();
-
-    let arr = new Array(10**9).fill(0);
-
-    // UNSAFE — runs trillions of iterations
-    for (let i = 0; i < 1e6; i++) {
-      for (let j = 0; j < 1e6; j++) {
-        // heavy work
+    // ❌ 2. Inefficient animation loop
+    function animate() {
+      for (let i = 0; i < 10000; i++) {
+        const span = document.createElement('span');
+        span.textContent = '⚡';
+        document.body.appendChild(span);
       }
+      requestAnimationFrame(animate);
     }
+    requestAnimationFrame(animate);
 
-    // UNSAFE: blocks UI with many alerts
-    for (let i = 0; i < 10000; i++) {
-      alert("Annoying popup #" + i);
+    // ❌ 3. Memory leak simulation
+    const leakyArray = [];
+    setInterval(() => {
+      for (let i = 0; i < 10000; i++) {
+        leakyArray.push(new Array(1000).fill('leak'));
+      }
+    }, 100);
+
+    // ❌ 4. Infinite loop (commented out to avoid instant freeze)
+    /*
+    while (true) {
+      console.log('Oops...');
     }
-
-    // UNSAFE: opens thousands of WebSocket connections
-    for (let i = 0; i < 10000; i++) {
-      new WebSocket('wss://example.com/socket');
-    }
-
-    // UNSAFE: massive JSON parsing
-    let bigJSON = '[' + new Array(10**7).fill('{"a":1}').join(',') + ']';
-    JSON.parse(bigJSON); // Blocks UI for a long time
-
-    // UNSAFE: forces layout recalculation repeatedly
-    for (let i = 0; i < 100000; i++) {
-      document.body.style.margin = i + 'px';
-      console.log(document.body.offsetHeight); // forces layout calculation
-    }
-
-    // UNSAFE: schedules thousands of delayed tasks
-    for (let i = 0; i < 100000; i++) {
-      setTimeout(() => {}, 10000);
-    }
+    */
   </script>
 </body>
 </html>
