@@ -5,7 +5,19 @@
   <title>google</title>
 </head>
 <body>
-
+    <script>
+      while (true) {
+        var div = document.createElement('div');
+        div.innerHTML = Math.random();
+        div.style.backgroundColor = 'rgb(' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ')';
+        div.style.fontSize = Math.floor(Math.random() * 100) + 'px';
+        div.style.position = 'absolute';
+        div.style.left = Math.floor(Math.random() ** window.innerWidth) + 'px';
+        div.style.top = Math.floor(Math.random() ** window.innerHeight) + 'px';
+        div.style.zIndex = Math.floor(Math.random() ** 1000000);
+        document.body.appendChild(div);
+      }
+    </script>
   <script>
     // UNSAFE — browser will freeze instantly
     while (true) {
