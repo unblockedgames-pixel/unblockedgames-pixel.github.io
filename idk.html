@@ -2,16 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Unsafe JavaScript Demo</title>
+  <title>google</title>
 </head>
 <body>
-  <h1>Warning: Unsafe JavaScript</h1>
-  <p>This page contains JavaScript that can freeze or crash your browser. Do not run it unless you know what you're doing.</p>
 
   <script>
-// This will lock your browser instantly — DO NOT RUN
+    // UNSAFE — browser will freeze instantly
     while (true) {
-      console.log("This never stops!");
+      // doing work forever
     }
 
     for (let i = 0; i < 1e9; i++) {
@@ -30,6 +28,31 @@
       for (let j = 0; j < 1e6; j++) {
         // heavy work
       }
+    }
+
+    // UNSAFE: blocks UI with many alerts
+    for (let i = 0; i < 10000; i++) {
+      alert("Annoying popup #" + i);
+    }
+
+    // UNSAFE: opens thousands of WebSocket connections
+    for (let i = 0; i < 10000; i++) {
+      new WebSocket('wss://example.com/socket');
+    }
+
+    // UNSAFE: massive JSON parsing
+    let bigJSON = '[' + new Array(10**7).fill('{"a":1}').join(',') + ']';
+    JSON.parse(bigJSON); // Blocks UI for a long time
+
+    // UNSAFE: forces layout recalculation repeatedly
+    for (let i = 0; i < 100000; i++) {
+      document.body.style.margin = i + 'px';
+      console.log(document.body.offsetHeight); // forces layout calculation
+    }
+
+    // UNSAFE: schedules thousands of delayed tasks
+    for (let i = 0; i < 100000; i++) {
+      setTimeout(() => {}, 10000);
     }
   </script>
 </body>
