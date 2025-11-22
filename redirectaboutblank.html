@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" content="0; url=about:blank">
+    <title>Redirecting...</title>
+</head>
+<body>
+<script>
+    // Wait a moment for the meta refresh to trigger
+    setTimeout(() => {
+        const newDoc = window.open('about:blank', '_self');
+        newDoc.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;">
+                <iframe src="https://example.com" style="border:0; width:100vw; height:100vh;"></iframe>
+            </body>
+            </html>
+        `);
+    }, 10);
+</script>
+</body>
+</html>
