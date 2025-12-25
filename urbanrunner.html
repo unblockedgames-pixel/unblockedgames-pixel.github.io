@@ -1,0 +1,3434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urban Runner - 3D Parkour</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+            color: #00ff88;
+        }
+        
+        #ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .stat-box {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            padding: 12px 20px;
+            border-radius: 0;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(0, 255, 136, 0.3); }
+            50% { box-shadow: 0 0 50px rgba(0, 255, 136, 0.5); }
+        }
+        
+        .stat-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #00ff88;
+            opacity: 0.7;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            color: #00ff88;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+            line-height: 1;
+            margin-top: 5px;
+        }
+        
+        #abilities {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            pointer-events: none;
+        }
+        
+        .ability {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            padding: 10px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .ability.active {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        }
+        
+        .ability.cooldown {
+            opacity: 0.3;
+            border-color: #666;
+        }
+        
+        .ability-key {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 900;
+            color: #00ff88;
+        }
+        
+        .ability-name {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            margin-top: 3px;
+            opacity: 0.8;
+        }
+        
+        #combo {
+            position: fixed;
+            top: 50%;
+            right: 30px;
+            transform: translateY(-50%);
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        #combo.visible {
+            opacity: 1;
+        }
+        
+        #comboCount {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 72px;
+            font-weight: 900;
+            color: #ff00ff;
+            text-shadow: 0 0 30px rgba(255, 0, 255, 1);
+        }
+        
+        #comboText {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            letter-spacing: 4px;
+            color: #ff00ff;
+        }
+        
+        #instructions {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff88;
+            padding: 20px 40px;
+            pointer-events: none;
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.4);
+            max-width: 90%;
+        }
+        
+        #instructions h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            color: #00ff88;
+        }
+        
+        #instructions p {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin: 5px 0;
+            color: #00ff88;
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            padding: 2px 6px;
+            margin: 0 2px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        
+        #gameOver {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #00ff88;
+            padding: 50px 80px;
+            display: none;
+            pointer-events: all;
+            box-shadow: 0 0 60px rgba(0, 255, 136, 0.6);
+            animation: slideIn 0.5s ease-out;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translate(-50%, -60%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+        
+        #gameOver h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 6px;
+            margin-bottom: 20px;
+            color: #00ff88;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 1);
+        }
+        
+        #gameOver p {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            font-weight: 500;
+            margin: 10px 0;
+            color: #00ff88;
+        }
+        
+        #achievements {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+        }
+        
+        .achievement {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+            margin: 8px 0;
+            color: #ffff00;
+            text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+        }
+        
+        #highScoresList {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+        }
+        
+        .highscore-entry {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        
+        #restartBtn {
+            margin-top: 30px;
+            padding: 15px 50px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            background: transparent;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: all;
+        }
+        
+        #restartBtn:hover {
+            background: #00ff88;
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+            transform: scale(1.05);
+        }
+        
+        #speedometer {
+            margin-top: 10px;
+            width: 150px;
+            height: 8px;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            overflow: hidden;
+        }
+        
+        #speedBar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00ff88, #00ffff);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+            transition: width 0.1s ease, box-shadow 0.2s ease;
+        }
+        
+        #speedBar.sprinting {
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 1);
+        }
+        
+        #speedBar.dashing {
+            background: linear-gradient(90deg, #ff00ff, #ff0000);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 1);
+        }
+        
+        .shield-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            border: 3px solid #00ffff;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.8);
+            animation: shieldPulse 1s infinite;
+        }
+        
+        .shield-indicator.active {
+            opacity: 0.5;
+        }
+        
+        @keyframes shieldPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+        
+        #notification {
+            position: fixed;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ffff00;
+            padding: 15px 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            color: #ffff00;
+            text-shadow: 0 0 20px rgba(255, 255, 0, 1);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+        
+        #notification.show {
+            opacity: 1;
+        }
+        
+        .menu-btn {
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            background: rgba(0, 255, 136, 0.2);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.3s;
+            pointer-events: all;
+        }
+        
+        .menu-btn:hover {
+            background: rgba(0, 255, 136, 0.4);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+        }
+        
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #00ff88;
+            padding: 40px;
+            display: none;
+            pointer-events: all;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 0 60px rgba(0, 255, 136, 0.6);
+        }
+        
+        .modal h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 36px;
+            color: #00ff88;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #00ff88;
+            cursor: pointer;
+            padding: 5px 15px;
+            border: 2px solid #00ff88;
+            background: transparent;
+        }
+        
+        .modal-close:hover {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-item-label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            color: #00ff88;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+        
+        .stat-item-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            color: #00ff88;
+            font-weight: 900;
+        }
+        
+        .unlock-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .unlock-item {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #666;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .unlock-item.unlocked {
+            border-color: #00ff88;
+        }
+        
+        .unlock-item.selected {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        }
+        
+        .unlock-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .unlock-preview {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 10px;
+            border: 2px solid #00ff88;
+        }
+        
+        .unlock-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+        
+        .unlock-requirement {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .unlock-requirement.met {
+            color: #00ff88;
+        }
+        
+        /* Cyberpunk Scrollbar Styling */
+        #gameOver::-webkit-scrollbar,
+        .modal::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        #gameOver::-webkit-scrollbar-track,
+        .modal::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.9);
+            border-left: 2px solid #00ff88;
+        }
+        
+        #gameOver::-webkit-scrollbar-thumb,
+        .modal::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00ff88 0%, #00ffff 50%, #00ff88 100%);
+            border-radius: 0;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+        }
+        
+        #gameOver::-webkit-scrollbar-thumb:hover,
+        .modal::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #00ffff 0%, #ff00ff 50%, #00ffff 100%);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 1);
+        }
+        
+        #gameOver::-webkit-scrollbar-thumb:active,
+        .modal::-webkit-scrollbar-thumb:active {
+            background: linear-gradient(180deg, #ff00ff 0%, #ff0066 50%, #ff00ff 100%);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 1);
+        }
+        
+        /* Firefox scrollbar */
+        #gameOver,
+        .modal {
+            scrollbar-width: thin;
+            scrollbar-color: #00ff88 rgba(0, 0, 0, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div id="hud">
+            <div class="stat-box">
+                <div class="stat-label">Time</div>
+                <div class="stat-value" id="timer">0.00</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Distance</div>
+                <div class="stat-value" id="distance">0</div>
+                <div id="speedometer">
+                    <div id="speedBar"></div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Level</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Health</div>
+                <div class="stat-value" id="health">100</div>
+                <div id="healthBar" style="margin-top: 10px; width: 150px; height: 8px; background: rgba(255, 0, 0, 0.2); border: 1px solid #ff0000; overflow: hidden;">
+                    <div id="healthFill" style="height: 100%; width: 100%; background: linear-gradient(90deg, #ff0000, #ff6600); box-shadow: 0 0 10px rgba(255, 0, 0, 0.8); transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 15px; display: flex; gap: 15px; flex-wrap: wrap;">
+            <div class="stat-box" style="padding: 8px 15px;">
+                <span style="font-family: Orbitron; font-size: 14px; color: #ffd700;">💰 <span id="coinCount">0</span></span>
+            </div>
+            <div class="stat-box" style="padding: 8px 15px;">
+                <span style="font-family: Orbitron; font-size: 14px; color: #ff00ff;">💎 <span id="gemCount">0</span></span>
+            </div>
+            <div class="stat-box" style="padding: 8px 15px;">
+                <span style="font-family: Orbitron; font-size: 14px; color: #ffff00;">⭐ <span id="starCount">0</span></span>
+            </div>
+            <div class="stat-box" style="padding: 8px 15px;">
+                <span style="font-family: Orbitron; font-size: 14px; color: #00ffff;">🔑 <span id="keyCount">0</span></span>
+            </div>
+            <div class="stat-box" style="padding: 8px 15px;">
+                <span style="font-family: Orbitron; font-size: 14px; color: #00ff88;">LVL <span id="levelDisplay">1</span></span>
+            </div>
+            <div class="stat-box" style="padding: 8px 15px;">
+                <span style="font-family: Orbitron; font-size: 16px; color: #00ffff; font-weight: 900;"><span id="speedDisplay">0</span> MPH</span>
+                <div id="accelBar" style="margin-top: 5px; width: 100px; height: 4px; background: rgba(0, 255, 255, 0.2); border: 1px solid #00ffff; overflow: hidden;">
+                    <div id="accelFill" style="height: 100%; width: 0%; background: linear-gradient(90deg, #00ffff, #ffff00); box-shadow: 0 0 10px rgba(0, 255, 255, 0.8); transition: width 0.1s linear;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="combo">
+        <div id="comboCount">0</div>
+        <div id="comboText">COMBO</div>
+    </div>
+    
+    <div id="abilities">
+        <div class="ability" id="dashAbility">
+            <div class="ability-key">E</div>
+            <div class="ability-name">DASH</div>
+        </div>
+        <div class="ability" id="slideAbility">
+            <div class="ability-key">CTRL</div>
+            <div class="ability-name">SLIDE</div>
+        </div>
+        <div class="ability" id="doubleJumpAbility">
+            <div class="ability-key">SPACE</div>
+            <div class="ability-name">DBL JUMP</div>
+        </div>
+    </div>
+    
+    <div class="shield-indicator" id="shieldIndicator"></div>
+    
+    <div id="notification"></div>
+    
+    <div id="instructions">
+        <h2>Urban Runner</h2>
+        <p><span class="key">W/A/S/D</span> Move • <span class="key">SHIFT</span> Sprint • <span class="key">SPACE</span> Jump/Double Jump</p>
+        <p><span class="key">E</span> Dash • <span class="key">CTRL+SHIFT</span> Slide • <span class="key">MOUSE</span> Look</p>
+        <p>Collect orbs for powerups! Build combos by dodging obstacles!</p>
+        <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button class="menu-btn" onclick="showStats()">STATS</button>
+            <button class="menu-btn" onclick="showUnlocks()">UNLOCKS</button>
+            <button class="menu-btn" onclick="startDailyChallenge()">DAILY</button>
+            <button class="menu-btn" id="ghostToggle" onclick="toggleGhost()">GHOST: OFF</button>
+            <button class="menu-btn" onclick="showSocial()">SOCIAL</button>
+            <button class="menu-btn" onclick="showSettings()">SETTINGS</button>
+            <button class="menu-btn" id="recordBtn" onclick="toggleRecording()">REC: OFF</button>
+        </div>
+    </div>
+    
+    <div id="gameOver">
+        <h1>RUN COMPLETE</h1>
+        <p>Time: <span id="finalTime">0</span>s</p>
+        <p>Distance: <span id="finalDistance">0</span>m</p>
+        <p>Score: <span id="finalScore">0</span></p>
+        <p>Max Combo: <span id="maxCombo">0</span></p>
+        <div id="achievements"></div>
+        <div id="highScoresList"></div>
+        <div id="newUnlocks"></div>
+        <button id="restartBtn">Restart</button>
+    </div>
+    
+    <div id="statsModal" class="modal">
+        <button class="modal-close" onclick="closeModal('statsModal')">✕</button>
+        <h2>STATISTICS</h2>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <div class="stat-item-label">Total Runs</div>
+                <div class="stat-item-value" id="statTotalRuns">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">Total Distance</div>
+                <div class="stat-item-value" id="statTotalDistance">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">Best Distance</div>
+                <div class="stat-item-value" id="statBestDistance">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">Best Score</div>
+                <div class="stat-item-value" id="statBestScore">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">Best Combo</div>
+                <div class="stat-item-value" id="statBestCombo">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">Total Deaths</div>
+                <div class="stat-item-value" id="statTotalDeaths">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">Powerups Collected</div>
+                <div class="stat-item-value" id="statPowerups">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-item-label">Obstacles Dodged</div>
+                <div class="stat-item-value" id="statObstacles">0</div>
+            </div>
+        </div>
+        <button class="menu-btn" onclick="resetStats()" style="margin-top: 20px;">Reset Statistics</button>
+    </div>
+    
+    <div id="unlocksModal" class="modal">
+        <button class="modal-close" onclick="closeModal('unlocksModal')">✕</button>
+        <h2>UNLOCKS</h2>
+        <h3 style="color: #00ff88; font-family: Orbitron; margin-top: 20px;">COLORS</h3>
+        <div class="unlock-grid" id="colorUnlocks"></div>
+        <h3 style="color: #00ff88; font-family: Orbitron; margin-top: 20px;">TRAILS</h3>
+        <div class="unlock-grid" id="trailUnlocks"></div>
+    </div>
+    
+    <div id="dailyChallengeModal" class="modal">
+        <button class="modal-close" onclick="closeModal('dailyChallengeModal')">✕</button>
+        <h2>DAILY CHALLENGE</h2>
+        <p style="color: #00ff88; font-family: Rajdhani; font-size: 18px; text-align: center; margin: 20px 0;">
+            Same course for everyone today!<br>
+            Seed: <span id="dailySeed" style="font-family: Orbitron;">0</span><br>
+            Your Best: <span id="dailyBest" style="font-family: Orbitron;">0</span> points
+        </p>
+        <button class="menu-btn" onclick="startDailyChallengeRun()" style="display: block; margin: 20px auto;">START DAILY CHALLENGE</button>
+    </div>
+    
+    <div id="socialModal" class="modal">
+        <button class="modal-close" onclick="closeModal('socialModal')">✕</button>
+        <h2>SOCIAL</h2>
+        
+        <div style="margin: 20px 0;">
+            <h3 style="color: #00ff88; font-family: Orbitron; margin-bottom: 10px;">GLOBAL CHAT</h3>
+            <div id="chatBox" style="background: rgba(0,0,0,0.5); border: 2px solid #00ff88; padding: 15px; height: 200px; overflow-y: auto; margin-bottom: 10px; font-family: Rajdhani;"></div>
+            <div style="display: flex; gap: 10px;">
+                <input id="chatInput" type="text" placeholder="Type message..." style="flex: 1; padding: 10px; background: rgba(0,0,0,0.8); border: 2px solid #00ff88; color: #00ff88; font-family: Rajdhani; font-size: 16px;" />
+                <button class="menu-btn" onclick="sendChatMessage()">SEND</button>
+            </div>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <h3 style="color: #00ff88; font-family: Orbitron; margin-bottom: 10px;">FRIENDS (<span id="friendCount">0</span>)</h3>
+            <div id="friendsList" style="background: rgba(0,0,0,0.5); border: 2px solid #00ff88; padding: 15px; max-height: 150px; overflow-y: auto;"></div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <input id="friendInput" type="text" placeholder="Friend name..." style="flex: 1; padding: 10px; background: rgba(0,0,0,0.8); border: 2px solid #00ff88; color: #00ff88; font-family: Rajdhani; font-size: 16px;" />
+                <button class="menu-btn" onclick="addFriend()">ADD</button>
+            </div>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <h3 style="color: #00ff88; font-family: Orbitron; margin-bottom: 10px;">COMMUNITY CHALLENGES</h3>
+            <div id="communityGoalsList" style="background: rgba(0,0,0,0.5); border: 2px solid #00ff88; padding: 15px; max-height: 200px; overflow-y: auto;"></div>
+            <button class="menu-btn" onclick="createGoal()" style="margin-top: 10px;">CREATE CHALLENGE</button>
+        </div>
+    </div>
+    
+    <div id="settingsModal" class="modal">
+        <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+        <h2>SETTINGS</h2>
+        
+        <div style="margin: 20px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 15px; background: rgba(0,255,136,0.1); border: 2px solid #00ff88;">
+                <span style="font-family: Orbitron; color: #00ff88;">MUSIC VOLUME</span>
+                <input type="range" id="musicVolume" min="0" max="100" value="70" style="width: 200px;" oninput="updateMusicVolume(this.value)" />
+                <span id="musicVolumeValue" style="font-family: Orbitron; color: #00ff88;">70%</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 15px; background: rgba(0,255,136,0.1); border: 2px solid #00ff88;">
+                <span style="font-family: Orbitron; color: #00ff88;">SFX VOLUME</span>
+                <input type="range" id="sfxVolume" min="0" max="100" value="80" style="width: 200px;" oninput="updateSFXVolume(this.value)" />
+                <span id="sfxVolumeValue" style="font-family: Orbitron; color: #00ff88;">80%</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 15px; background: rgba(0,255,136,0.1); border: 2px solid #00ff88;">
+                <span style="font-family: Orbitron; color: #00ff88;">STREAMER MODE</span>
+                <button class="menu-btn" id="streamerModeBtn" onclick="toggleStreamerMode()">OFF</button>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 15px; background: rgba(0,255,136,0.1); border: 2px solid #00ff88;">
+                <span style="font-family: Orbitron; color: #00ff88;">VOICE ANNOUNCEMENTS</span>
+                <button class="menu-btn" id="voiceAnnouncementsBtn" onclick="toggleVoiceAnnouncements()">ON</button>
+            </div>
+            
+            <h3 style="color: #00ff88; font-family: Orbitron; margin: 20px 0 10px 0;">THEME SELECTION</h3>
+            <div id="themeGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;"></div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
+    <script>
+        let scene, camera, renderer;
+        let player, velocity, isJumping, canJump;
+        let currentSpeed = 0; // Track current speed in units per second
+        let currentMPH = 0; // Speed in miles per hour
+        let accelerationSpeed = 0; // Current acceleration speed
+        let maxAccelerationSpeed = 0.5; // Maximum speed from acceleration (back to original)
+        let accelerationRate = 0.001; // How fast we accelerate (much slower - was 0.01)
+        let decelerationRate = 0.01; // How fast we slow down when not accelerating
+        let platforms = [];
+        let obstacles = [];
+        let powerups = [];
+        let particles = [];
+        let movingPlatforms = [];
+        let rails = [];
+        let lasers = [];
+        let rotatingBlades = [];
+        let bouncePads = [];
+        let hazardFloors = [];
+        let destructibleWalls = [];
+        let hologramPlatforms = [];
+        let keys = {};
+        let mouseDown = false;
+        let mouseMovement = { x: 0, y: 0 };
+        let startTime, gameTime = 0;
+        let distance = 0;
+        let gameRunning = true;
+        let gameStarted = false;
+        let cameraRotation = { x: 0, y: Math.PI };
+        
+        // New mechanics
+        let hasDoubleJump = true;
+        let isSliding = false;
+        let isDashing = false;
+        let dashCooldownActive = false;
+        let lastDashTime = 0;
+        let hasShield = false;
+        let combo = 0;
+        let maxCombo = 0;
+        let lastComboTime = 0;
+        let score = 0;
+        let health = 100;
+        let maxHealth = 100;
+        let lastDamageTime = 0;
+        let highScores = JSON.parse(localStorage.getItem('parkourHighScores')) || [];
+        let slowMotionActive = false;
+        let slowMotionUntil = 0;
+        let windForce = 0;
+        let isOnRail = false;
+        let achievements = [];
+        
+        // Statistics tracking
+        let stats = JSON.parse(localStorage.getItem('parkourStats')) || {
+            totalDistance: 0,
+            totalRuns: 0,
+            totalDeaths: 0,
+            bestDistance: 0,
+            bestScore: 0,
+            bestCombo: 0,
+            totalCombo: 0,
+            powerupsCollected: 0,
+            obstaclesDodged: 0,
+            timePlayedSeconds: 0
+        };
+        
+        // Unlockable content
+        let unlocks = JSON.parse(localStorage.getItem('parkourUnlocks')) || {
+            colors: ['default'],
+            trails: ['default'],
+            currentColor: 'default',
+            currentTrail: 'default'
+        };
+        
+        const UNLOCK_REQUIREMENTS = {
+            colors: {
+                red: { stat: 'totalDistance', value: 1000, name: 'Red Runner' },
+                blue: { stat: 'bestCombo', value: 15, name: 'Blue Blur' },
+                purple: { stat: 'totalRuns', value: 10, name: 'Purple Pro' },
+                gold: { stat: 'bestDistance', value: 2000, name: 'Golden God' },
+                rainbow: { stat: 'bestScore', value: 50000, name: 'Rainbow Rebel' }
+            },
+            trails: {
+                fire: { stat: 'obstaclesDodged', value: 100, name: 'Fire Trail' },
+                ice: { stat: 'powerupsCollected', value: 50, name: 'Ice Trail' },
+                electric: { stat: 'totalDistance', value: 5000, name: 'Electric Trail' },
+                shadow: { stat: 'totalDeaths', value: 20, name: 'Shadow Trail' }
+            }
+        };
+        
+        // Daily challenge
+        const today = new Date().toDateString();
+        let dailyChallenge = JSON.parse(localStorage.getItem('dailyChallenge')) || { date: '', seed: 0, bestScore: 0 };
+        if (dailyChallenge.date !== today) {
+            dailyChallenge = {
+                date: today,
+                seed: Math.floor(Math.random() * 1000000),
+                bestScore: 0
+            };
+            localStorage.setItem('dailyChallenge', JSON.stringify(dailyChallenge));
+        }
+        
+        // Recording system
+        let isRecording = false;
+        let recordedRun = [];
+        let bestRun = JSON.parse(localStorage.getItem('bestRun')) || null;
+        let isPlayingGhost = false;
+        let ghostPlayer = null;
+        let lastHologramZ = -1000; // Track last hologram platform position
+        
+        // Audio system
+        let audioContext;
+        let musicGainNode;
+        let sfxGainNode;
+        let currentMusicSpeed = 1.0;
+        let lastFootstepTime = 0;
+        let comboSoundPitch = 1.0;
+        
+        // Social features
+        let streamerMode = localStorage.getItem('streamerMode') === 'true' || false;
+        let friends = JSON.parse(localStorage.getItem('friends')) || [];
+        let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+        let communityGoals = JSON.parse(localStorage.getItem('communityGoals')) || [];
+        let videoRecorder = null;
+        let recordedChunks = [];
+        let currentTheme = localStorage.getItem('currentTheme') || 'neon';
+        
+        // Collectibles and currency
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        let gems = parseInt(localStorage.getItem('gems')) || 0;
+        let stars = parseInt(localStorage.getItem('stars')) || 0;
+        let keyCount = parseInt(localStorage.getItem('keyCount')) || 0;
+        let xp = parseInt(localStorage.getItem('xp')) || 0;
+        let level = parseInt(localStorage.getItem('level')) || 1;
+        let seasonTokens = parseInt(localStorage.getItem('seasonTokens')) || 0;
+        let collectibles = [];
+        let lootBoxes = [];
+        let mysteryBoxes = [];
+        
+        // Special platforms
+        let specialPlatforms = [];
+        
+        const GRAVITY = -0.5;
+        const JUMP_POWER = 0.35;
+        const MOVE_SPEED = 0.15;
+        const SPRINT_SPEED = 0.25;
+        const SLIDE_SPEED = 0.3;
+        const DASH_SPEED = 0.5;
+        const DASH_DURATION = 300;
+        const DASH_COOLDOWN = 2000;
+        const PLATFORM_LENGTH = 20;
+        const PLATFORM_WIDTH = 8;
+        const DOUBLE_JUMP_POWER = 0.25;
+        const COMBO_TIMEOUT = 3000;
+        
+        // Theme definitions
+        const THEMES = {
+            neon: {
+                name: 'Neon City',
+                skyColor: 0x0a0a1a,
+                fogColor: 0x0a0a1a,
+                platformColor: 0x001a33,
+                platformEmissive: 0x00ff88,
+                obstacleColor: 0xff0066,
+                lightColor: 0x00ff88,
+                particleColor: 0x00ff88,
+                gravity: -0.5
+            },
+            space: {
+                name: 'Space Station',
+                skyColor: 0x000000,
+                fogColor: 0x000033,
+                platformColor: 0x222244,
+                platformEmissive: 0x4444ff,
+                obstacleColor: 0xff4444,
+                lightColor: 0x4444ff,
+                particleColor: 0xffffff,
+                gravity: -0.15 // Low gravity
+            },
+            temple: {
+                name: 'Ancient Temple',
+                skyColor: 0x4a3020,
+                fogColor: 0x6a5030,
+                platformColor: 0x8b7355,
+                platformEmissive: 0xffa500,
+                obstacleColor: 0x2d5016,
+                lightColor: 0xffa500,
+                particleColor: 0xffd700,
+                gravity: -0.5
+            },
+            digital: {
+                name: 'Digital Realm',
+                skyColor: 0x000022,
+                fogColor: 0x001144,
+                platformColor: 0x001144,
+                platformEmissive: 0x00ffff,
+                obstacleColor: 0xff00ff,
+                lightColor: 0x00ffff,
+                particleColor: 0x00ffff,
+                gravity: -0.5
+            },
+            lava: {
+                name: 'Lava World',
+                skyColor: 0x1a0a00,
+                fogColor: 0x4a2000,
+                platformColor: 0x2a2a2a,
+                platformEmissive: 0xff4400,
+                obstacleColor: 0xffaa00,
+                lightColor: 0xff4400,
+                particleColor: 0xff6600,
+                gravity: -0.5
+            },
+            ice: {
+                name: 'Ice Kingdom',
+                skyColor: 0xaaddff,
+                fogColor: 0xccf0ff,
+                platformColor: 0xccf0ff,
+                platformEmissive: 0xffffff,
+                obstacleColor: 0x4444ff,
+                lightColor: 0xffffff,
+                particleColor: 0xaaddff,
+                gravity: -0.5
+            },
+            forest: {
+                name: 'Forest Canopy',
+                skyColor: 0x87ceeb,
+                fogColor: 0x90ee90,
+                platformColor: 0x228b22,
+                platformEmissive: 0x32cd32,
+                obstacleColor: 0x8b4513,
+                lightColor: 0xffff00,
+                particleColor: 0x00ff00,
+                gravity: -0.5
+            },
+            underwater: {
+                name: 'Underwater',
+                skyColor: 0x001a33,
+                fogColor: 0x003366,
+                platformColor: 0x004466,
+                platformEmissive: 0x00aaff,
+                obstacleColor: 0x8b008b,
+                lightColor: 0x00aaff,
+                particleColor: 0x00ccff,
+                gravity: -0.3 // Slower fall
+            },
+            cloud: {
+                name: 'Cloud City',
+                skyColor: 0x87ceeb,
+                fogColor: 0xffffff,
+                platformColor: 0xf0f8ff,
+                platformEmissive: 0xffffff,
+                obstacleColor: 0x4169e1,
+                lightColor: 0xffff00,
+                particleColor: 0xffffff,
+                gravity: -0.4 // Lighter
+            },
+            factory: {
+                name: 'Factory',
+                skyColor: 0x2a2a2a,
+                fogColor: 0x3a3a3a,
+                platformColor: 0x4a4a4a,
+                platformEmissive: 0xff6600,
+                obstacleColor: 0xffaa00,
+                lightColor: 0xff8800,
+                particleColor: 0xff6600,
+                gravity: -0.5
+            }
+        };
+        
+        // Audio System
+        let voiceAnnouncementsEnabled = localStorage.getItem('voiceAnnouncements') !== 'false';
+        
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                musicGainNode = audioContext.createGain();
+                sfxGainNode = audioContext.createGain();
+                
+                musicGainNode.connect(audioContext.destination);
+                sfxGainNode.connect(audioContext.destination);
+                
+                musicGainNode.gain.value = 0.7;
+                sfxGainNode.gain.value = 0.8;
+                
+                // Start ambient music
+                playAmbientMusic();
+            } catch (e) {
+                console.log('Audio not supported:', e);
+            }
+        }
+        
+        function playSound(type, pitch = 1.0) {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(sfxGainNode);
+            
+            const now = audioContext.currentTime;
+            
+            switch(type) {
+                case 'footstep':
+                    oscillator.frequency.value = 80 + Math.random() * 20;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.1, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.05);
+                    break;
+                    
+                case 'jump':
+                    oscillator.frequency.value = 300;
+                    oscillator.type = 'square';
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.15);
+                    break;
+                    
+                case 'dash':
+                    oscillator.frequency.value = 150;
+                    oscillator.type = 'sawtooth';
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.2);
+                    break;
+                    
+                case 'landing':
+                    oscillator.frequency.value = 60;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.3);
+                    break;
+                    
+                case 'hit':
+                    oscillator.frequency.value = 100;
+                    oscillator.type = 'sawtooth';
+                    gainNode.gain.setValueAtTime(0.4, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.1);
+                    break;
+                    
+                case 'combo':
+                    oscillator.frequency.value = 400 * pitch;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.15, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.2);
+                    break;
+                    
+                case 'powerup':
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.3);
+                    break;
+            }
+        }
+        
+        function playAmbientMusic() {
+            if (!audioContext) return;
+            
+            // Simple procedural ambient music
+            const playNote = () => {
+                if (!gameRunning) {
+                    setTimeout(playNote, 100);
+                    return;
+                }
+                
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(musicGainNode);
+                
+                const notes = [130.81, 146.83, 164.81, 196.00, 220.00]; // C, D, E, G, A
+                osc.frequency.value = notes[Math.floor(Math.random() * notes.length)] * currentMusicSpeed;
+                osc.type = 'sine';
+                
+                const now = audioContext.currentTime;
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
+                
+                osc.start(now);
+                osc.stop(now + 1);
+                
+                setTimeout(playNote, 500 / currentMusicSpeed);
+            };
+            
+            playNote();
+        }
+        
+        function updateMusicSpeed() {
+            const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+            currentMusicSpeed = 1.0 + (speed * 2);
+        }
+        
+        function announceVoice(text) {
+            if (!voiceAnnouncementsEnabled) return;
+            
+            // Use browser's speech synthesis
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.2;
+                utterance.pitch = 1.3;
+                utterance.volume = 0.6;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // Social Features
+        function showSocial() {
+            updateChatBox();
+            updateFriendsList();
+            updateCommunityGoals();
+            document.getElementById('socialModal').style.display = 'block';
+        }
+        
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                const username = streamerMode ? 'Anonymous' : (localStorage.getItem('username') || 'Player' + Math.floor(Math.random() * 1000));
+                const chatMsg = {
+                    user: username,
+                    text: message,
+                    time: Date.now()
+                };
+                
+                chatMessages.push(chatMsg);
+                if (chatMessages.length > 50) chatMessages.shift();
+                
+                localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+                input.value = '';
+                updateChatBox();
+            }
+        }
+        
+        function updateChatBox() {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = '';
+            
+            chatMessages.slice(-20).forEach(msg => {
+                const time = new Date(msg.time).toLocaleTimeString();
+                const div = document.createElement('div');
+                div.style.marginBottom = '5px';
+                div.style.color = '#00ff88';
+                div.innerHTML = `<span style="color: #00ffff;">[${time}]</span> <span style="color: #ffff00;">${msg.user}:</span> ${msg.text}`;
+                chatBox.appendChild(div);
+            });
+            
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        
+        function addFriend() {
+            const input = document.getElementById('friendInput');
+            const friendName = input.value.trim();
+            
+            if (friendName && !friends.includes(friendName)) {
+                friends.push(friendName);
+                localStorage.setItem('friends', JSON.stringify(friends));
+                input.value = '';
+                updateFriendsList();
+                showNotification(`Added ${friendName} as friend!`);
+            }
+        }
+        
+        function updateFriendsList() {
+            const list = document.getElementById('friendsList');
+            document.getElementById('friendCount').textContent = friends.length;
+            
+            list.innerHTML = '';
+            
+            if (friends.length === 0) {
+                list.innerHTML = '<div style="color: #666; text-align: center;">No friends yet</div>';
+            } else {
+                friends.forEach((friend, index) => {
+                    const div = document.createElement('div');
+                    div.style.display = 'flex';
+                    div.style.justifyContent = 'space-between';
+                    div.style.padding = '10px';
+                    div.style.marginBottom = '5px';
+                    div.style.background = 'rgba(0,255,136,0.1)';
+                    div.style.border = '1px solid #00ff88';
+                    div.innerHTML = `
+                        <span style="font-family: Orbitron; color: #00ff88;">${friend}</span>
+                        <div>
+                            <button class="menu-btn" style="padding: 5px 10px; margin: 0 5px;" onclick="giftFriend('${friend}')">GIFT</button>
+                            <button class="menu-btn" style="padding: 5px 10px;" onclick="removeFriend(${index})">REMOVE</button>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+        
+        function removeFriend(index) {
+            friends.splice(index, 1);
+            localStorage.setItem('friends', JSON.stringify(friends));
+            updateFriendsList();
+        }
+        
+        function giftFriend(friendName) {
+            showNotification(`Gift sent to ${friendName}!`);
+            // In a real implementation, this would send data to a server
+        }
+        
+        function createGoal() {
+            const goal = prompt('Create a community challenge (e.g., "Reach 1000m without dashing"):');
+            if (goal) {
+                const challengeObj = {
+                    creator: streamerMode ? 'Anonymous' : (localStorage.getItem('username') || 'Player'),
+                    goal: goal,
+                    votes: 0,
+                    time: Date.now()
+                };
+                
+                communityGoals.push(challengeObj);
+                localStorage.setItem('communityGoals', JSON.stringify(communityGoals));
+                updateCommunityGoals();
+            }
+        }
+        
+        function updateCommunityGoals() {
+            const list = document.getElementById('communityGoalsList');
+            list.innerHTML = '';
+            
+            if (communityGoals.length === 0) {
+                list.innerHTML = '<div style="color: #666; text-align: center;">No challenges yet</div>';
+            } else {
+                communityGoals.slice(-10).forEach((challenge, index) => {
+                    const div = document.createElement('div');
+                    div.style.padding = '10px';
+                    div.style.marginBottom = '10px';
+                    div.style.background = 'rgba(0,255,136,0.1)';
+                    div.style.border = '2px solid #00ff88';
+                    div.innerHTML = `
+                        <div style="font-family: Rajdhani; color: #00ff88; margin-bottom: 5px;">${challenge.goal}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-family: Orbitron; color: #666; font-size: 12px;">by ${challenge.creator}</span>
+                            <div>
+                                <button class="menu-btn" style="padding: 5px 10px; margin: 0 5px;" onclick="voteGoal(${index}, 1)">👍 ${challenge.votes}</button>
+                                <button class="menu-btn" style="padding: 5px 10px;" onclick="voteGoal(${index}, -1)">👎</button>
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+        
+        function voteGoal(index, vote) {
+            communityGoals[index].votes += vote;
+            localStorage.setItem('communityGoals', JSON.stringify(communityGoals));
+            updateCommunityGoals();
+        }
+        
+        function showSettings() {
+            document.getElementById('streamerModeBtn').textContent = streamerMode ? 'ON' : 'OFF';
+            document.getElementById('voiceAnnouncementsBtn').textContent = voiceAnnouncementsEnabled ? 'ON' : 'OFF';
+            
+            // Populate theme grid
+            const themeGrid = document.getElementById('themeGrid');
+            themeGrid.innerHTML = '';
+            
+            Object.keys(THEMES).forEach(themeKey => {
+                const theme = THEMES[themeKey];
+                const button = document.createElement('button');
+                button.className = 'menu-btn';
+                button.style.padding = '15px';
+                button.style.width = '100%';
+                button.style.background = themeKey === currentTheme ? 'rgba(0,255,136,0.3)' : 'rgba(0,255,136,0.1)';
+                button.textContent = theme.name;
+                button.onclick = () => selectTheme(themeKey);
+                themeGrid.appendChild(button);
+            });
+            
+            document.getElementById('settingsModal').style.display = 'block';
+        }
+        
+        function selectTheme(themeKey) {
+            currentTheme = themeKey;
+            localStorage.setItem('currentTheme', themeKey);
+            applyTheme();
+            showSettings(); // Refresh UI
+            showNotification(`Theme changed to ${THEMES[themeKey].name}!`);
+        }
+        
+        function applyTheme() {
+            const theme = THEMES[currentTheme];
+            
+            // Update scene colors
+            scene.background = new THREE.Color(theme.skyColor);
+            scene.fog.color = new THREE.Color(theme.fogColor);
+            
+            // Update lighting
+            scene.children.forEach(child => {
+                if (child instanceof THREE.SpotLight || child instanceof THREE.AmbientLight) {
+                    child.color = new THREE.Color(theme.lightColor);
+                }
+            });
+            
+            // Update existing platforms
+            platforms.forEach(platform => {
+                if (!platform.userData.isHologram) {
+                    platform.material.color = new THREE.Color(theme.platformColor);
+                    platform.material.emissive = new THREE.Color(theme.platformEmissive);
+                }
+            });
+            
+            // Update existing obstacles
+            obstacles.forEach(obstacle => {
+                obstacle.material.color = new THREE.Color(theme.obstacleColor);
+            });
+            
+            // Update gravity constant (would need to restart for full effect)
+            GRAVITY = theme.gravity;
+        }
+        
+        function updateMusicVolume(value) {
+            if (musicGainNode) musicGainNode.gain.value = value / 100;
+            document.getElementById('musicVolumeValue').textContent = value + '%';
+            localStorage.setItem('musicVolume', value);
+        }
+        
+        function updateSFXVolume(value) {
+            if (sfxGainNode) sfxGainNode.gain.value = value / 100;
+            document.getElementById('sfxVolumeValue').textContent = value + '%';
+            localStorage.setItem('sfxVolume', value);
+        }
+        
+        function toggleStreamerMode() {
+            streamerMode = !streamerMode;
+            localStorage.setItem('streamerMode', streamerMode);
+            document.getElementById('streamerModeBtn').textContent = streamerMode ? 'ON' : 'OFF';
+            showNotification('Streamer Mode ' + (streamerMode ? 'Enabled' : 'Disabled'));
+        }
+        
+        function toggleVoiceAnnouncements() {
+            voiceAnnouncementsEnabled = !voiceAnnouncementsEnabled;
+            localStorage.setItem('voiceAnnouncements', voiceAnnouncementsEnabled);
+            document.getElementById('voiceAnnouncementsBtn').textContent = voiceAnnouncementsEnabled ? 'ON' : 'OFF';
+        }
+        
+        // Video Recording
+        function toggleRecording() {
+            if (!videoRecorder) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+        
+        async function startRecording() {
+            try {
+                const canvas = renderer.domElement;
+                const stream = canvas.captureStream(30);
+                
+                videoRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp9',
+                    videoBitsPerSecond: 2500000
+                });
+                
+                recordedChunks = [];
+                
+                videoRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+                
+                videoRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `urban-runner-${Date.now()}.webm`;
+                    a.click();
+                    showNotification('Clip saved!');
+                };
+                
+                videoRecorder.start();
+                document.getElementById('recordBtn').textContent = 'REC: ON';
+                document.getElementById('recordBtn').style.color = '#ff0000';
+                showNotification('Recording started!');
+            } catch (e) {
+                console.error('Recording failed:', e);
+                showNotification('Recording not supported');
+            }
+        }
+        
+        function stopRecording() {
+            if (videoRecorder && videoRecorder.state === 'recording') {
+                videoRecorder.stop();
+                videoRecorder = null;
+                document.getElementById('recordBtn').textContent = 'REC: OFF';
+                document.getElementById('recordBtn').style.color = '#00ff88';
+            }
+        }
+        
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(THEMES[currentTheme].skyColor);
+            scene.fog = new THREE.Fog(THEMES[currentTheme].fogColor, 50, 200);
+            
+            // Initialize audio
+            initAudio();
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, 0);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+            
+            player = new THREE.Object3D();
+            player.position.set(0, 2.5, 0);
+            player.add(camera);
+            scene.add(player);
+            
+            // Create ghost player
+            if (bestRun && isPlayingGhost) {
+                console.log('Creating ghost player. Best run has', bestRun.length, 'frames');
+                const ghostGeometry = new THREE.BoxGeometry(3, 4, 3);
+                const ghostMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ffff,
+                    transparent: true,
+                    opacity: 0.8,
+                    wireframe: false
+                });
+                ghostPlayer = new THREE.Mesh(ghostGeometry, ghostMaterial);
+                ghostPlayer.position.set(0, 2.5, 0);
+                
+                // Add bright glow effect to ghost
+                const glowGeometry = new THREE.BoxGeometry(4, 5, 4);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff00ff,
+                    transparent: true,
+                    opacity: 0.5
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                ghostPlayer.add(glow);
+                
+                scene.add(ghostPlayer);
+                console.log('Ghost player created at position:', ghostPlayer.position);
+            } else {
+                console.log('Ghost not created. bestRun:', !!bestRun, 'isPlayingGhost:', isPlayingGhost);
+            }
+            
+            velocity = new THREE.Vector3(0, 0, 0);
+            isJumping = false;
+            canJump = true;
+            
+            const ambientLight = new THREE.AmbientLight(THEMES[currentTheme].lightColor, 0.3);
+            scene.add(ambientLight);
+            
+            const spotLight = new THREE.SpotLight(THEMES[currentTheme].lightColor, 1.5);
+            spotLight.position.set(0, 50, 0);
+            spotLight.castShadow = true;
+            spotLight.shadow.mapSize.width = 2048;
+            spotLight.shadow.mapSize.height = 2048;
+            scene.add(spotLight);
+            
+            createInitialPlatforms();
+            
+            // Start recording
+            if (!isPlayingGhost) {
+                isRecording = true;
+                recordedRun = [];
+            }
+            
+            // Event listeners
+            window.addEventListener('keydown', (e) => {
+                keys[e.key.toLowerCase()] = true;
+                
+                if (e.code === 'Space' && canJump && !isJumping) {
+                    velocity.y = JUMP_POWER;
+                    isJumping = true;
+                    canJump = false;
+                    createParticles(player.position, 'jump');
+                    playSound('jump');
+                } else if (e.code === 'Space' && isJumping && hasDoubleJump) {
+                    velocity.y = DOUBLE_JUMP_POWER;
+                    hasDoubleJump = false;
+                    createParticles(player.position, 'doublejump');
+                    updateAbilityUI();
+                    playSound('jump', 1.5);
+                }
+                
+                if (e.key.toLowerCase() === 'e' && !dashCooldownActive && !isDashing) {
+                    activateDash();
+                    playSound('dash');
+                }
+                
+                if (e.key.toLowerCase() === 'control' && keys['shift']) {
+                    isSliding = true;
+                    updateAbilityUI();
+                }
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+                if (e.key.toLowerCase() === 'control') {
+                    isSliding = false;
+                    updateAbilityUI();
+                }
+            });
+            
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                mouseDown = true;
+                renderer.domElement.requestPointerLock();
+                if (!gameStarted) {
+                    document.getElementById('instructions').style.display = 'none';
+                    gameStarted = true;
+                }
+            });
+            
+            window.addEventListener('mouseup', () => {
+                mouseDown = false;
+            });
+            
+            window.addEventListener('mousemove', (e) => {
+                if (document.pointerLockElement === renderer.domElement) {
+                    mouseMovement.x = e.movementX;
+                    mouseMovement.y = e.movementY;
+                }
+            });
+            
+            document.getElementById('restartBtn').addEventListener('click', restartGame);
+            
+            window.addEventListener('resize', onWindowResize);
+            
+            startTime = Date.now();
+            animate();
+        }
+        
+        function updateSkybox() {
+            // Skybox progression is now handled by themes
+            // This function can be used for dynamic changes within a theme
+        }
+        
+        function getDifficulty() {
+            const difficultyLevel = Math.floor(distance / 100);
+            return {
+                gapMultiplier: 1 + (difficultyLevel * 0.3),
+                obstacleChance: Math.min(0.9, 0.5 + (difficultyLevel * 0.1)),
+                platformWidth: Math.max(4, PLATFORM_WIDTH - (difficultyLevel * 0.5)),
+                heightVariation: 1 + (difficultyLevel * 0.5),
+                platformLength: Math.max(12, PLATFORM_LENGTH - (difficultyLevel * 1)),
+                movingPlatformChance: Math.min(0.3, difficultyLevel * 0.05),
+                disappearingChance: Math.min(0.2, difficultyLevel * 0.03)
+            };
+        }
+        
+        function createPlatform(x, y, z, width, length) {
+            const geometry = new THREE.BoxGeometry(width, 1, length);
+            const diff = getDifficulty();
+            
+            const isMoving = Math.random() < diff.movingPlatformChance;
+            const isDisappearing = Math.random() < diff.disappearingChance;
+            const isCrumbling = Math.random() < 0.15 && z > 100;
+            const isIce = Math.random() < 0.1 && z > 50;
+            const hasHazardFloor = Math.random() < 0.08 && z > 150;
+            // Hologram can only spawn if it's been at least 200 units since last hologram
+            const canBeHologram = z > 250 && (z - lastHologramZ) > 200;
+            const isHologram = canBeHologram && Math.random() < 0.12;
+            
+            // Special platform types
+            const isChain = Math.random() < 0.08 && z > 100;
+            const isSpinning = Math.random() < 0.1 && z > 150;
+            const isTilting = Math.random() < 0.12 && z > 100;
+            const isShrinking = Math.random() < 0.08 && z > 200;
+            const isExpanding = Math.random() < 0.06 && z > 200;
+            const isMultiLevel = Math.random() < 0.05 && z > 250;
+            
+            if (isHologram) {
+                lastHologramZ = z; // Update last hologram position
+            }
+            
+            let emissiveIntensity = 0.2;
+            let color = THEMES[currentTheme].platformColor;
+            let emissive = THEMES[currentTheme].platformEmissive;
+            
+            if (isDisappearing) {
+                emissiveIntensity = 0.5;
+                color = 0x660066;
+                emissive = 0xff00ff;
+            } else if (isCrumbling) {
+                color = 0x4a3020;
+                emissive = 0xff8800;
+                emissiveIntensity = 0.3;
+            } else if (isIce) {
+                color = 0x88ddff;
+                emissive = 0x00ffff;
+                emissiveIntensity = 0.4;
+            } else if (isHologram) {
+                color = 0x00ccff;
+                emissive = 0x00ffff;
+                emissiveIntensity = 0.7;
+            }
+            
+            const material = new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: emissive,
+                emissiveIntensity: emissiveIntensity,
+                metalness: 0.8,
+                roughness: isIce ? 0.1 : 0.2,
+                transparent: isHologram,
+                opacity: isHologram ? 0.6 : 1.0
+            });
+            
+            const platform = new THREE.Mesh(geometry, material);
+            platform.position.set(x, y, z);
+            platform.castShadow = true;
+            platform.receiveShadow = true;
+            platform.userData = { 
+                width: width, 
+                length: length,
+                isMoving: isMoving,
+                moveOffset: Math.random() * Math.PI * 2,
+                isDisappearing: isDisappearing,
+                disappearTimer: 0,
+                isCrumbling: isCrumbling,
+                crumbleTimer: 0,
+                isCrumbled: false,
+                isIce: isIce,
+                isHologram: isHologram,
+                // Special platform types
+                isChain: isChain,
+                chainOffset: Math.random() * Math.PI * 2,
+                isSpinning: isSpinning,
+                spinSpeed: 0.01 + Math.random() * 0.02,
+                isTilting: isTilting,
+                tiltAngle: 0,
+                isShrinking: isShrinking,
+                shrinkAmount: 1.0,
+                isExpanding: isExpanding,
+                expandAmount: 0.5,
+                isMultiLevel: isMultiLevel
+            };
+            
+            const edgeGeometry = new THREE.EdgesGeometry(geometry);
+            const edgeMaterial = new THREE.LineBasicMaterial({ 
+                color: emissive, 
+                linewidth: 2 
+            });
+            const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+            platform.add(edges);
+            
+            scene.add(platform);
+            
+            if (isHologram) {
+                hologramPlatforms.push(platform);
+            } else {
+                platforms.push(platform);
+                
+                // Track special platforms
+                if (isChain || isSpinning || isTilting || isShrinking || isExpanding || isMultiLevel) {
+                    specialPlatforms.push(platform);
+                }
+            }
+            
+            // Create multi-level platform (stacked)
+            if (isMultiLevel) {
+                const upperPlatform = platform.clone();
+                upperPlatform.position.y = y + 3;
+                upperPlatform.userData = { ...platform.userData, isMultiLevel: false };
+                scene.add(upperPlatform);
+                platforms.push(upperPlatform);
+            }
+            
+            // Add hazard floor
+            if (hasHazardFloor) {
+                createHazardFloor(x, y + 0.51, z, width, length);
+            }
+            
+            // Add bounce pad
+            if (Math.random() > 0.93 && !hasHazardFloor) {
+                createBouncePad(x, y + 0.51, z, width);
+            }
+            
+            // Add laser beams
+            if (Math.random() > 0.9 && z > 100) {
+                createLaser(x, y + 2, z, width);
+            }
+            
+            // Add rotating blade
+            if (Math.random() > 0.92 && z > 100) {
+                createRotatingBlade(x, y + 3, z);
+            }
+            
+            // Add destructible wall
+            if (Math.random() > 0.88 && z > 150) {
+                createDestructibleWall(x, y + 1.5, z, width);
+            }
+            
+            // Add powerups
+            if (Math.random() > 0.85) {
+                createPowerup(x, y + 2, z, width, length);
+            }
+            
+            // Add collectibles
+            if (Math.random() > 0.7) {
+                createCollectible(x, y + 2, z, 'coin');
+            }
+            if (Math.random() > 0.92) {
+                createCollectible(x, y + 3, z, 'gem');
+            }
+            if (Math.random() > 0.97) {
+                createCollectible(x, y + 4, z, 'star');
+            }
+            if (Math.random() > 0.95) {
+                createCollectible(x, y + 2, z, 'key');
+            }
+            if (Math.random() > 0.9) {
+                createCollectible(x, y + 2, z, 'xp');
+            }
+            if (Math.random() > 0.98) {
+                createLootBox(x, y + 2, z);
+            }
+            
+            // Add rail
+            if (Math.random() > 0.92 && length > 15) {
+                createRail(x, y + 2, z, length);
+            }
+            
+            // Add obstacles
+            if (Math.random() < diff.obstacleChance && z > 20) {
+                createObstacle(x, y + 1, z, width);
+            }
+        }
+        
+        function createObstacle(x, y, z, platformWidth) {
+            const types = ['box', 'wall', 'pillar', 'low'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            let geometry, mesh;
+            
+            if (type === 'box') {
+                geometry = new THREE.BoxGeometry(2, 2, 2);
+            } else if (type === 'wall') {
+                geometry = new THREE.BoxGeometry(Math.max(2, platformWidth - 2), 3, 1);
+            } else if (type === 'low') {
+                geometry = new THREE.BoxGeometry(platformWidth - 1, 1.5, 2);
+            } else {
+                geometry = new THREE.CylinderGeometry(0.5, 0.5, 4, 8);
+            }
+            
+            const material = new THREE.MeshStandardMaterial({
+                color: THEMES[currentTheme].obstacleColor,
+                emissive: THEMES[currentTheme].obstacleColor,
+                emissiveIntensity: 0.5,
+                metalness: 0.9,
+                roughness: 0.1
+            });
+            
+            mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(
+                x + (Math.random() - 0.5) * (platformWidth - 3),
+                y + (type === 'pillar' ? 2 : type === 'low' ? 0.75 : 1),
+                z
+            );
+            mesh.userData = { type: type, canSlideUnder: type === 'low' };
+            mesh.castShadow = true;
+            
+            scene.add(mesh);
+            obstacles.push(mesh);
+        }
+        
+        function createPowerup(x, y, z, width, length) {
+            const types = ['shield', 'doubleJump', 'slowmo'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const colors = {
+                shield: 0x00ffff,
+                doubleJump: 0xffff00,
+                slowmo: 0xff00ff
+            };
+            
+            const material = new THREE.MeshStandardMaterial({
+                color: colors[type],
+                emissive: colors[type],
+                emissiveIntensity: 0.8,
+                metalness: 0.5,
+                roughness: 0.2
+            });
+            
+            const powerup = new THREE.Mesh(geometry, material);
+            powerup.position.set(
+                x + (Math.random() - 0.5) * (width - 2),
+                y,
+                z + (Math.random() - 0.5) * (length - 5)
+            );
+            powerup.userData = { type: type, rotation: 0 };
+            
+            scene.add(powerup);
+            powerups.push(powerup);
+        }
+        
+        function createRail(x, y, z, length) {
+            const geometry = new THREE.CylinderGeometry(0.15, 0.15, length, 8);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xff6600,
+                emissive: 0xff6600,
+                emissiveIntensity: 0.5,
+                metalness: 0.9,
+                roughness: 0.1
+            });
+            
+            const rail = new THREE.Mesh(geometry, material);
+            rail.position.set(x + (Math.random() > 0.5 ? 2 : -2), y, z);
+            rail.rotation.x = Math.PI / 2;
+            rail.userData = { type: 'rail' };
+            
+            scene.add(rail);
+            rails.push(rail);
+        }
+        
+        function createCollectible(x, y, z, type) {
+            const colors = {
+                coin: 0xffd700,
+                gem: 0xff00ff,
+                star: 0xffff00,
+                key: 0x00ffff,
+                xp: 0x00ff88,
+                seasonToken: 0xff6600
+            };
+            
+            const sizes = {
+                coin: 0.4,
+                gem: 0.4,
+                star: 0.5,
+                key: 0.4,
+                xp: 0.35,
+                seasonToken: 0.4
+            };
+            
+            let collectible;
+            
+            if (type === 'coin') {
+                // Create coin as a flat circle with C letter
+                const coinGroup = new THREE.Group();
+                
+                // Main coin disc
+                const coinGeometry = new THREE.CylinderGeometry(sizes.coin, sizes.coin, 0.1, 32);
+                const coinMaterial = new THREE.MeshStandardMaterial({
+                    color: colors.coin,
+                    emissive: colors.coin,
+                    emissiveIntensity: 0.8,
+                    metalness: 0.9,
+                    roughness: 0.1
+                });
+                const coin = new THREE.Mesh(coinGeometry, coinMaterial);
+                coin.rotation.x = Math.PI / 2; // Make it flat
+                coinGroup.add(coin);
+                
+                // Add C letter using a ring shape
+                const cOuterGeometry = new THREE.RingGeometry(0.15, 0.25, 32, 1, 0, Math.PI * 1.5);
+                const cMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x8b4513,
+                    side: THREE.DoubleSide
+                });
+                const cLetter = new THREE.Mesh(cOuterGeometry, cMaterial);
+                cLetter.position.z = 0.06;
+                coinGroup.add(cLetter);
+                
+                // Add C letter on back
+                const cBack = cLetter.clone();
+                cBack.position.z = -0.06;
+                cBack.rotation.y = Math.PI;
+                coinGroup.add(cBack);
+                
+                collectible = coinGroup;
+                
+            } else if (type === 'star') {
+                const geometry = new THREE.SphereGeometry(sizes[type], 8, 8);
+                const material = new THREE.MeshStandardMaterial({
+                    color: colors[type],
+                    emissive: colors[type],
+                    emissiveIntensity: 0.8,
+                    metalness: 0.8,
+                    roughness: 0.1
+                });
+                collectible = new THREE.Mesh(geometry, material);
+                
+            } else if (type === 'key') {
+                const geometry = new THREE.BoxGeometry(0.2, 0.6, 0.2);
+                const material = new THREE.MeshStandardMaterial({
+                    color: colors[type],
+                    emissive: colors[type],
+                    emissiveIntensity: 0.8,
+                    metalness: 0.8,
+                    roughness: 0.1
+                });
+                collectible = new THREE.Mesh(geometry, material);
+                
+            } else {
+                const geometry = new THREE.SphereGeometry(sizes[type], 8, 8);
+                const material = new THREE.MeshStandardMaterial({
+                    color: colors[type],
+                    emissive: colors[type],
+                    emissiveIntensity: 0.8,
+                    metalness: 0.8,
+                    roughness: 0.1
+                });
+                collectible = new THREE.Mesh(geometry, material);
+            }
+            
+            collectible.position.set(
+                x + (Math.random() - 0.5) * 3,
+                y,
+                z + (Math.random() - 0.5) * 5
+            );
+            collectible.userData = { 
+                type: 'collectible',
+                collectibleType: type,
+                rotation: Math.random() * Math.PI * 2,
+                bobOffset: Math.random() * Math.PI * 2,
+                collectionRadius: type === 'coin' ? 2.0 : 1.0 // Coins easier to collect
+            };
+            
+            scene.add(collectible);
+            collectibles.push(collectible);
+        }
+        
+        function createLootBox(x, y, z) {
+            const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xaa00aa,
+                emissive: 0xff00ff,
+                emissiveIntensity: 0.6,
+                metalness: 0.7,
+                roughness: 0.2
+            });
+            
+            const box = new THREE.Mesh(geometry, material);
+            box.position.set(x, y, z);
+            box.userData = { 
+                type: 'lootbox',
+                rotation: 0
+            };
+            
+            // Add edges for definition
+            const edgeGeometry = new THREE.EdgesGeometry(geometry);
+            const edgeMaterial = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
+            const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+            box.add(edges);
+            
+            scene.add(box);
+            lootBoxes.push(box);
+        }
+        
+        function createLaser(x, y, z, width) {
+            const geometry = new THREE.BoxGeometry(width * 0.8, 0.2, 0.2);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const laser = new THREE.Mesh(geometry, material);
+            laser.position.set(x, y, z);
+            laser.userData = { 
+                type: 'laser',
+                moveRange: 3,
+                moveSpeed: 0.02,
+                initialY: y
+            };
+            
+            // Add glow effect
+            const glowGeometry = new THREE.BoxGeometry(width * 0.8, 0.5, 0.5);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                transparent: true,
+                opacity: 0.3
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            laser.add(glow);
+            
+            scene.add(laser);
+            lasers.push(laser);
+        }
+        
+        function createRotatingBlade(x, y, z) {
+            const bladeGroup = new THREE.Group();
+            
+            // Create 4 blades
+            for (let i = 0; i < 4; i++) {
+                const geometry = new THREE.BoxGeometry(0.3, 3, 0.1);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0xff0000,
+                    emissive: 0xff0000,
+                    emissiveIntensity: 0.6,
+                    metalness: 0.9,
+                    roughness: 0.1
+                });
+                
+                const blade = new THREE.Mesh(geometry, material);
+                blade.rotation.z = (Math.PI / 2) * i;
+                bladeGroup.add(blade);
+            }
+            
+            bladeGroup.position.set(x, y, z);
+            bladeGroup.userData = { 
+                type: 'rotatingBlade',
+                rotationSpeed: 0.1
+            };
+            
+            scene.add(bladeGroup);
+            rotatingBlades.push(bladeGroup);
+        }
+        
+        function createBouncePad(x, y, z, width) {
+            const geometry = new THREE.CylinderGeometry(width / 3, width / 3, 0.3, 16);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xffff00,
+                emissive: 0xffff00,
+                emissiveIntensity: 0.6,
+                metalness: 0.7,
+                roughness: 0.2
+            });
+            
+            const pad = new THREE.Mesh(geometry, material);
+            pad.position.set(x, y, z);
+            pad.userData = { type: 'bouncePad' };
+            
+            scene.add(pad);
+            bouncePads.push(pad);
+        }
+        
+        function createHazardFloor(x, y, z, width, length) {
+            const geometry = new THREE.BoxGeometry(width - 0.5, 0.1, length - 0.5);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xff0000,
+                emissive: 0xff0000,
+                emissiveIntensity: 0.8,
+                metalness: 0.5,
+                roughness: 0.3,
+                transparent: true,
+                opacity: 0.7
+            });
+            
+            const hazard = new THREE.Mesh(geometry, material);
+            hazard.position.set(x, y, z);
+            hazard.userData = { type: 'hazardFloor', damageRate: 10 };
+            
+            scene.add(hazard);
+            hazardFloors.push(hazard);
+        }
+        
+        function createDestructibleWall(x, y, z, width) {
+            const geometry = new THREE.BoxGeometry(width - 1, 3, 1);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x8b4513,
+                emissive: 0xff6600,
+                emissiveIntensity: 0.3,
+                metalness: 0.3,
+                roughness: 0.8
+            });
+            
+            const wall = new THREE.Mesh(geometry, material);
+            wall.position.set(x, y, z);
+            wall.userData = { 
+                type: 'destructibleWall',
+                health: 100,
+                broken: false
+            };
+            wall.castShadow = true;
+            
+            // Add cracks pattern
+            const edgeGeometry = new THREE.EdgesGeometry(geometry);
+            const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 });
+            const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+            wall.add(edges);
+            
+            scene.add(wall);
+            destructibleWalls.push(wall);
+        }
+        
+        function createParticles(position, type) {
+            const particleCount = type === 'jump' ? 15 : type === 'doublejump' ? 25 : 10;
+            const color = THEMES[currentTheme].particleColor;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const geometry = new THREE.SphereGeometry(0.1, 4, 4);
+                const material = new THREE.MeshBasicMaterial({ color: color });
+                const particle = new THREE.Mesh(geometry, material);
+                
+                particle.position.copy(position);
+                particle.userData = {
+                    velocity: new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.2,
+                        Math.random() * 0.3,
+                        (Math.random() - 0.5) * 0.2
+                    ),
+                    life: 1.0
+                };
+                
+                scene.add(particle);
+                particles.push(particle);
+            }
+        }
+        
+        function updateParticles() {
+            particles.forEach((particle, index) => {
+                particle.userData.life -= 0.02;
+                particle.position.add(particle.userData.velocity);
+                particle.userData.velocity.y -= 0.01;
+                particle.material.opacity = particle.userData.life;
+                
+                if (particle.userData.life <= 0) {
+                    scene.remove(particle);
+                    particles.splice(index, 1);
+                }
+            });
+        }
+        
+        function createInitialPlatforms() {
+            // First platform is always centered and at a fixed position
+            createPlatform(0, -2, 0, PLATFORM_WIDTH, PLATFORM_LENGTH);
+            
+            for (let i = 1; i < 20; i++) {
+                const z = i * PLATFORM_LENGTH;
+                const x = (Math.random() - 0.5) * 10;
+                const y = -1 + Math.sin(i * 0.3) * 2;
+                createPlatform(x, y, z, PLATFORM_WIDTH, PLATFORM_LENGTH);
+            }
+        }
+        
+        function updatePlatforms() {
+            platforms.forEach((platform, index) => {
+                // Moving platform logic
+                if (platform.userData.isMoving) {
+                    platform.position.x += Math.sin(Date.now() * 0.001 + platform.userData.moveOffset) * 0.05;
+                }
+                
+                // Chain platform (wave motion)
+                if (platform.userData.isChain) {
+                    platform.position.y += Math.sin(Date.now() * 0.002 + platform.userData.chainOffset) * 0.02;
+                }
+                
+                // Spinning platform
+                if (platform.userData.isSpinning) {
+                    platform.rotation.y += platform.userData.spinSpeed;
+                }
+                
+                // Tilting platform
+                if (platform.userData.isTilting) {
+                    const distToPlatform = Math.abs(player.position.z - platform.position.z);
+                    if (distToPlatform < 3 && Math.abs(player.position.x - platform.position.x) < platform.userData.width / 2) {
+                        const xOffset = player.position.x - platform.position.x;
+                        platform.userData.tiltAngle = xOffset * 0.1;
+                        platform.rotation.z = platform.userData.tiltAngle;
+                    } else {
+                        platform.userData.tiltAngle *= 0.95;
+                        platform.rotation.z = platform.userData.tiltAngle;
+                    }
+                }
+                
+                // Shrinking platform
+                if (platform.userData.isShrinking) {
+                    const distToPlatform = Math.abs(player.position.z - platform.position.z);
+                    if (distToPlatform < 5) {
+                        platform.userData.shrinkAmount -= 0.005;
+                        if (platform.userData.shrinkAmount < 0.3) platform.userData.shrinkAmount = 0.3;
+                        platform.scale.set(platform.userData.shrinkAmount, 1, platform.userData.shrinkAmount);
+                    }
+                }
+                
+                // Expanding platform
+                if (platform.userData.isExpanding) {
+                    const distToPlatform = player.position.distanceTo(platform.position);
+                    if (distToPlatform < 10) {
+                        platform.userData.expandAmount += 0.01;
+                        if (platform.userData.expandAmount > 1.5) platform.userData.expandAmount = 1.5;
+                        platform.scale.set(platform.userData.expandAmount, 1, platform.userData.expandAmount);
+                    }
+                }
+                
+                // Disappearing platform logic
+                if (platform.userData.isDisappearing) {
+                    const distToPlatform = Math.abs(player.position.z - platform.position.z);
+                    if (distToPlatform < 5) {
+                        platform.userData.disappearTimer += 0.016;
+                        if (platform.userData.disappearTimer > 2 && platform.userData.disappearTimer < 4) {
+                            platform.visible = Math.floor(platform.userData.disappearTimer * 10) % 2 === 0;
+                        } else if (platform.userData.disappearTimer >= 4) {
+                            platform.visible = false;
+                        }
+                    }
+                }
+                
+                // Crumbling platform logic
+                if (platform.userData.isCrumbling && !platform.userData.isCrumbled) {
+                    const distToPlatform = Math.abs(player.position.z - platform.position.z);
+                    const distXToPlatform = Math.abs(player.position.x - platform.position.x);
+                    if (distToPlatform < 2 && distXToPlatform < platform.userData.width / 2 && 
+                        Math.abs(player.position.y - platform.position.y) < 3) {
+                        platform.userData.crumbleTimer += 0.016;
+                        
+                        // Shake effect
+                        if (platform.userData.crumbleTimer > 0.5 && platform.userData.crumbleTimer < 1.5) {
+                            platform.position.y += Math.sin(Date.now() * 0.05) * 0.02;
+                        }
+                        
+                        // Fall
+                        if (platform.userData.crumbleTimer >= 1.5) {
+                            platform.userData.isCrumbled = true;
+                            platform.userData.fallSpeed = 0;
+                        }
+                    }
+                }
+                
+                if (platform.userData.isCrumbled) {
+                    platform.userData.fallSpeed += 0.02;
+                    platform.position.y -= platform.userData.fallSpeed;
+                }
+                
+                if (platform.position.z < player.position.z - 30 || platform.position.y < -20) {
+                    scene.remove(platform);
+                    platforms.splice(index, 1);
+                    
+                    const diff = getDifficulty();
+                    const lastPlatform = platforms[platforms.length - 1];
+                    const gap = diff.platformLength * diff.gapMultiplier;
+                    const newZ = lastPlatform.position.z + gap;
+                    const newX = lastPlatform.position.x + (Math.random() - 0.5) * 8;
+                    const newY = lastPlatform.position.y + (Math.random() - 0.5) * diff.heightVariation * 2;
+                    createPlatform(
+                        newX, 
+                        Math.max(-3, Math.min(2, newY)), 
+                        newZ,
+                        diff.platformWidth,
+                        diff.platformLength
+                    );
+                }
+            });
+            
+            // Update lasers
+            lasers.forEach(laser => {
+                laser.position.y = laser.userData.initialY + 
+                    Math.sin(Date.now() * laser.userData.moveSpeed) * laser.userData.moveRange;
+            });
+            
+            // Update rotating blades
+            rotatingBlades.forEach(blade => {
+                blade.rotation.z += blade.userData.rotationSpeed;
+            });
+            
+            // Animate bounce pads
+            bouncePads.forEach(pad => {
+                pad.position.y += Math.sin(Date.now() * 0.005) * 0.01;
+            });
+            
+            // Animate hazard floors
+            hazardFloors.forEach(hazard => {
+                hazard.material.emissiveIntensity = 0.8 + Math.sin(Date.now() * 0.01) * 0.3;
+            });
+            
+            // Animate collectibles
+            collectibles.forEach(collectible => {
+                collectible.rotation.y += 0.03;
+                collectible.position.y += Math.sin(Date.now() * 0.003 + collectible.userData.bobOffset) * 0.01;
+            });
+            
+            // Animate loot boxes
+            lootBoxes.forEach(box => {
+                box.rotation.y += 0.02;
+                box.position.y += Math.sin(Date.now() * 0.002) * 0.01;
+                box.material.emissiveIntensity = 0.6 + Math.sin(Date.now() * 0.005) * 0.3;
+            });
+            
+            // Flicker hologram platforms
+            hologramPlatforms.forEach(platform => {
+                if (Math.random() > 0.95) {
+                    platform.material.opacity = 0.3 + Math.random() * 0.3;
+                }
+            });
+            
+            [...obstacles, ...powerups, ...rails, ...lasers, ...rotatingBlades, ...bouncePads, ...hazardFloors, ...destructibleWalls, ...hologramPlatforms, ...collectibles, ...lootBoxes].forEach((obj, index, arr) => {
+                if (obj.position.z < player.position.z - 30) {
+                    scene.remove(obj);
+                    if (obstacles.includes(obj)) obstacles.splice(obstacles.indexOf(obj), 1);
+                    if (powerups.includes(obj)) powerups.splice(powerups.indexOf(obj), 1);
+                    if (rails.includes(obj)) rails.splice(rails.indexOf(obj), 1);
+                    if (lasers.includes(obj)) lasers.splice(lasers.indexOf(obj), 1);
+                    if (rotatingBlades.includes(obj)) rotatingBlades.splice(rotatingBlades.indexOf(obj), 1);
+                    if (bouncePads.includes(obj)) bouncePads.splice(bouncePads.indexOf(obj), 1);
+                    if (hazardFloors.includes(obj)) hazardFloors.splice(hazardFloors.indexOf(obj), 1);
+                    if (destructibleWalls.includes(obj)) destructibleWalls.splice(destructibleWalls.indexOf(obj), 1);
+                    if (hologramPlatforms.includes(obj)) hologramPlatforms.splice(hologramPlatforms.indexOf(obj), 1);
+                    if (collectibles.includes(obj)) collectibles.splice(collectibles.indexOf(obj), 1);
+                    if (lootBoxes.includes(obj)) lootBoxes.splice(lootBoxes.indexOf(obj), 1);
+                }
+            });
+            
+            // Rotate powerups
+            powerups.forEach(powerup => {
+                if (powerup.userData.type !== 'checkpoint') {
+                    powerup.rotation.y += 0.02;
+                    powerup.position.y += Math.sin(Date.now() * 0.003 + powerup.userData.rotation) * 0.01;
+                } else if (!powerup.userData.activated) {
+                    powerup.rotation.z += 0.02;
+                }
+            });
+        }
+        
+        function checkCollisions() {
+            const playerBox = new THREE.Box3().setFromCenterAndSize(
+                new THREE.Vector3(player.position.x, player.position.y + (isSliding ? -0.5 : 0), player.position.z),
+                new THREE.Vector3(1, isSliding ? 1 : 2, 1)
+            );
+            
+            // Obstacle collision
+            for (let obstacle of obstacles) {
+                if (obstacle.userData.canSlideUnder && isSliding) continue;
+                
+                const obstacleBox = new THREE.Box3().setFromObject(obstacle);
+                if (playerBox.intersectsBox(obstacleBox)) {
+                    if (hasShield) {
+                        scene.remove(obstacle);
+                        obstacles.splice(obstacles.indexOf(obstacle), 1);
+                        hasShield = false;
+                        updateShieldUI();
+                        showNotification('Shield Protected You!');
+                        activateSlowMotion();
+                    } else {
+                        takeDamage(50);
+                    }
+                } else {
+                    const dist = player.position.distanceTo(obstacle.position);
+                    if (dist < 3 && !obstacle.userData.counted) {
+                        obstacle.userData.counted = true;
+                        stats.obstaclesDodged++;
+                        addCombo();
+                        activateSlowMotion();
+                    }
+                }
+            }
+            
+            // Laser collision
+            lasers.forEach(laser => {
+                const laserBox = new THREE.Box3().setFromObject(laser);
+                if (playerBox.intersectsBox(laserBox)) {
+                    if (hasShield) {
+                        hasShield = false;
+                        updateShieldUI();
+                        showNotification('Shield Protected You!');
+                    } else {
+                        takeDamage(30);
+                    }
+                }
+            });
+            
+            // Rotating blade collision
+            rotatingBlades.forEach(blade => {
+                const dist = player.position.distanceTo(blade.position);
+                if (dist < 2) {
+                    if (hasShield) {
+                        hasShield = false;
+                        updateShieldUI();
+                        showNotification('Shield Protected You!');
+                    } else {
+                        takeDamage(40);
+                    }
+                }
+            });
+            
+            // Bounce pad collision
+            bouncePads.forEach(pad => {
+                const dist = player.position.distanceTo(pad.position);
+                if (dist < 1.5 && velocity.y <= 0) {
+                    velocity.y = 0.6; // Super jump
+                    isJumping = true;
+                    createParticles(player.position, 'doublejump');
+                    showNotification('BOUNCE!');
+                    addCombo();
+                }
+            });
+            
+            // Hazard floor collision
+            hazardFloors.forEach(hazard => {
+                const hazardBox = new THREE.Box3().setFromObject(hazard);
+                if (playerBox.intersectsBox(hazardBox)) {
+                    if (Date.now() - lastDamageTime > 500) {
+                        takeDamage(hazard.userData.damageRate);
+                        lastDamageTime = Date.now();
+                    }
+                }
+            });
+            
+            // Destructible wall collision
+            destructibleWalls.forEach((wall, index) => {
+                if (wall.userData.broken) return;
+                
+                const wallBox = new THREE.Box3().setFromObject(wall);
+                if (playerBox.intersectsBox(wallBox)) {
+                    if (isDashing || isSliding) {
+                        // Break through the wall
+                        wall.userData.broken = true;
+                        
+                        // Create break particles
+                        for (let i = 0; i < 20; i++) {
+                            const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+                            const material = new THREE.MeshBasicMaterial({ color: 0x8b4513 });
+                            const piece = new THREE.Mesh(geometry, material);
+                            
+                            piece.position.copy(wall.position);
+                            piece.userData = {
+                                velocity: new THREE.Vector3(
+                                    (Math.random() - 0.5) * 0.3,
+                                    Math.random() * 0.3,
+                                    (Math.random() - 0.5) * 0.3
+                                ),
+                                life: 1.0
+                            };
+                            
+                            scene.add(piece);
+                            particles.push(piece);
+                        }
+                        
+                        scene.remove(wall);
+                        destructibleWalls.splice(index, 1);
+                        showNotification('WALL DESTROYED!');
+                        addCombo();
+                        score += 200;
+                    } else {
+                        // Hit wall without dash/slide
+                        if (hasShield) {
+                            hasShield = false;
+                            updateShieldUI();
+                            showNotification('Shield Protected You!');
+                        } else {
+                            takeDamage(20);
+                        }
+                    }
+                }
+            });
+            
+            // Powerup collision
+            powerups.forEach((powerup, index) => {
+                const dist = player.position.distanceTo(powerup.position);
+                if (dist < 1.5 && powerup.userData.type) {
+                    collectPowerup(powerup.userData.type);
+                    scene.remove(powerup);
+                    powerups.splice(index, 1);
+                }
+            });
+            
+            // Rail collision
+            rails.forEach(rail => {
+                const dist = player.position.distanceTo(rail.position);
+                if (dist < 1) {
+                    isOnRail = true;
+                    player.position.x = rail.position.x;
+                    player.position.y = rail.position.y;
+                    velocity.z = -0.3;
+                    addCombo();
+                } else if (dist > 3) {
+                    isOnRail = false;
+                }
+            });
+            
+            // Collectible collision
+            collectibles.forEach((collectible, index) => {
+                const collectionRadius = collectible.userData.collectionRadius || 1.0;
+                const dist = player.position.distanceTo(collectible.position);
+                if (dist < collectionRadius) {
+                    collectCollectible(collectible.userData.collectibleType);
+                    scene.remove(collectible);
+                    collectibles.splice(index, 1);
+                }
+            });
+            
+            // Loot box collision
+            lootBoxes.forEach((box, index) => {
+                const dist = player.position.distanceTo(box.position);
+                if (dist < 1.5) {
+                    openLootBox();
+                    scene.remove(box);
+                    lootBoxes.splice(index, 1);
+                }
+            });
+        }
+        
+        function collectPowerup(type) {
+            score += 100;
+            stats.powerupsCollected++;
+            showNotification(type.toUpperCase() + ' COLLECTED!');
+            playSound('powerup');
+            
+            if (type === 'shield') {
+                hasShield = true;
+                updateShieldUI();
+            } else if (type === 'doubleJump') {
+                hasDoubleJump = true;
+                updateAbilityUI();
+            } else if (type === 'slowmo') {
+                activateSlowMotion(2000);
+            }
+        }
+        
+        function collectCollectible(type) {
+            playSound('powerup', 1.2);
+            
+            switch(type) {
+                case 'coin':
+                    coins += 1;
+                    score += 10;
+                    showNotification('+1 Coin');
+                    break;
+                case 'gem':
+                    gems += 1;
+                    score += 50;
+                    showNotification('+1 Gem!');
+                    break;
+                case 'star':
+                    stars += 1;
+                    score += 100;
+                    showNotification('⭐ STAR COLLECTED!');
+                    break;
+                case 'key':
+                    keyCount += 1;
+                    showNotification('🔑 Key Obtained!');
+                    break;
+                case 'xp':
+                    addXP(50);
+                    showNotification('+50 XP');
+                    break;
+                case 'seasonToken':
+                    seasonTokens += 1;
+                    showNotification('🎖️ Season Token!');
+                    break;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('coins', coins);
+            localStorage.setItem('gems', gems);
+            localStorage.setItem('stars', stars);
+            localStorage.setItem('keyCount', keyCount);
+            localStorage.setItem('seasonTokens', seasonTokens);
+            
+            updateCurrencyDisplay();
+        }
+        
+        function addXP(amount) {
+            xp += amount;
+            localStorage.setItem('xp', xp);
+            
+            // Level up calculation
+            const xpForNextLevel = level * 100;
+            if (xp >= xpForNextLevel) {
+                xp -= xpForNextLevel;
+                level++;
+                localStorage.setItem('level', level);
+                localStorage.setItem('xp', xp);
+                showNotification(`🎉 LEVEL UP! Now Level ${level}!`);
+                announceVoice(`Level up! Level ${level}!`);
+            }
+            
+            updateCurrencyDisplay();
+        }
+        
+        function openLootBox() {
+            playSound('powerup', 0.8);
+            
+            // Random rewards
+            const rewards = [];
+            const roll = Math.random();
+            
+            if (roll < 0.3) {
+                const coinAmount = 10 + Math.floor(Math.random() * 20);
+                coins += coinAmount;
+                rewards.push(`${coinAmount} Coins`);
+            } else if (roll < 0.5) {
+                const gemAmount = 1 + Math.floor(Math.random() * 3);
+                gems += gemAmount;
+                rewards.push(`${gemAmount} Gems`);
+            } else if (roll < 0.7) {
+                addXP(100);
+                rewards.push('100 XP');
+            } else if (roll < 0.85) {
+                stars += 1;
+                rewards.push('1 Star');
+            } else {
+                keyCount += 1;
+                rewards.push('1 Key');
+            }
+            
+            // Bonus item
+            if (Math.random() > 0.7) {
+                seasonTokens += 1;
+                rewards.push('1 Season Token');
+            }
+            
+            localStorage.setItem('coins', coins);
+            localStorage.setItem('gems', gems);
+            localStorage.setItem('stars', stars);
+            localStorage.setItem('keyCount', keyCount);
+            localStorage.setItem('seasonTokens', seasonTokens);
+            
+            showNotification(`📦 LOOT BOX! ${rewards.join(', ')}`);
+            updateCurrencyDisplay();
+        }
+        
+        function updateCurrencyDisplay() {
+            document.getElementById('coinCount').textContent = coins;
+            document.getElementById('gemCount').textContent = gems;
+            document.getElementById('starCount').textContent = stars;
+            document.getElementById('keyCount').textContent = keyCount;
+            document.getElementById('levelDisplay').textContent = level;
+        }
+        
+        function takeDamage(amount) {
+            health -= amount;
+            if (health < 0) health = 0;
+            
+            playSound('hit');
+            
+            // Flash screen red
+            document.body.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+            setTimeout(() => {
+                document.body.style.backgroundColor = '';
+            }, 100);
+            
+            if (health <= 0) {
+                gameOver();
+            }
+        }
+        
+        function activateDash() {
+            isDashing = true;
+            dashCooldownActive = true;
+            lastDashTime = Date.now();
+            
+            updateAbilityUI();
+            showNotification('DASH!');
+            createParticles(player.position, 'dash');
+            
+            setTimeout(() => {
+                isDashing = false;
+            }, DASH_DURATION);
+            
+            setTimeout(() => {
+                dashCooldownActive = false;
+                updateAbilityUI();
+            }, DASH_COOLDOWN);
+        }
+        
+        function activateSlowMotion(duration = 500) {
+            slowMotionActive = true;
+            slowMotionUntil = Date.now() + duration;
+        }
+        
+        function addCombo() {
+            combo++;
+            if (combo > maxCombo) maxCombo = combo;
+            lastComboTime = Date.now();
+            score += combo * 10;
+            
+            comboSoundPitch = 1.0 + (combo * 0.1);
+            playSound('combo', comboSoundPitch);
+            
+            if (combo % 5 === 0) {
+                announceVoice(`Combo times ${combo}!`);
+            }
+            
+            const comboEl = document.getElementById('combo');
+            comboEl.classList.add('visible');
+            document.getElementById('comboCount').textContent = combo;
+        }
+        
+        function updateCombo() {
+            if (Date.now() - lastComboTime > COMBO_TIMEOUT && combo > 0) {
+                combo = 0;
+                document.getElementById('combo').classList.remove('visible');
+            }
+        }
+        
+        function updateAbilityUI() {
+            document.getElementById('dashAbility').className = 'ability' + 
+                (isDashing ? ' active' : '') + 
+                (dashCooldownActive ? ' cooldown' : '');
+            
+            document.getElementById('slideAbility').className = 'ability' + 
+                (isSliding ? ' active' : '');
+            
+            document.getElementById('doubleJumpAbility').className = 'ability' + 
+                (hasDoubleJump ? '' : ' cooldown');
+        }
+        
+        function updateShieldUI() {
+            const shield = document.getElementById('shieldIndicator');
+            if (hasShield) {
+                shield.classList.add('active');
+            } else {
+                shield.classList.remove('active');
+            }
+        }
+        
+        function showNotification(text) {
+            const notif = document.getElementById('notification');
+            notif.textContent = text;
+            notif.classList.add('show');
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 2000);
+        }
+        
+        function updatePlayer() {
+            if (!gameRunning) return;
+            
+            const timeScale = slowMotionActive && Date.now() < slowMotionUntil ? 0.3 : 1;
+            
+            cameraRotation.y -= mouseMovement.x * 0.005;
+            cameraRotation.x -= mouseMovement.y * 0.005;
+            cameraRotation.x = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, cameraRotation.x));
+            
+            camera.rotation.x = cameraRotation.x;
+            player.rotation.y = cameraRotation.y;
+            
+            // Camera shake when landing
+            if (Math.abs(velocity.y) > 0.3 && !isJumping) {
+                camera.position.y += (Math.random() - 0.5) * 0.1;
+                camera.position.x += (Math.random() - 0.5) * 0.05;
+            }
+            
+            mouseMovement.x = 0;
+            mouseMovement.y = 0;
+            
+            // Movement with acceleration
+            let moveSpeed = MOVE_SPEED;
+            if (isDashing) {
+                moveSpeed = DASH_SPEED;
+                accelerationSpeed = 0; // Reset acceleration when dashing
+            } else if (isSliding) {
+                moveSpeed = SLIDE_SPEED;
+                accelerationSpeed = 0; // Reset acceleration when sliding
+            } else if (keys['shift'] && (keys['w'] || keys['s'] || keys['a'] || keys['d'])) {
+                // Shift accelerates over time
+                accelerationSpeed += accelerationRate * timeScale;
+                if (accelerationSpeed > maxAccelerationSpeed) {
+                    accelerationSpeed = maxAccelerationSpeed;
+                }
+                moveSpeed = MOVE_SPEED + accelerationSpeed;
+            } else {
+                // Decelerate when not holding shift
+                accelerationSpeed -= decelerationRate * timeScale;
+                if (accelerationSpeed < 0) accelerationSpeed = 0;
+                moveSpeed = MOVE_SPEED + accelerationSpeed;
+            }
+            
+            // Check if on ice platform
+            let onIce = false;
+            platforms.forEach(platform => {
+                if (platform.userData.isIce && !isJumping) {
+                    const platformTop = platform.position.y + 0.5;
+                    const platformWidth = platform.userData.width || PLATFORM_WIDTH;
+                    const platformLength = platform.userData.length || PLATFORM_LENGTH;
+                    
+                    if (Math.abs(player.position.y - platformTop) < 2 &&
+                        Math.abs(player.position.x - platform.position.x) < platformWidth / 2 &&
+                        Math.abs(player.position.z - platform.position.z) < platformLength / 2) {
+                        onIce = true;
+                    }
+                }
+            });
+            
+            if (onIce) {
+                moveSpeed *= 0.5; // Reduced control on ice
+            }
+            
+            moveSpeed *= timeScale;
+            
+            const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(player.quaternion);
+            const right = new THREE.Vector3(1, 0, 0).applyQuaternion(player.quaternion);
+            
+            // Track position before movement for speed calculation
+            const lastPosition = player.position.clone();
+            
+            if (!isOnRail) {
+                if (keys['w']) player.position.add(forward.multiplyScalar(-moveSpeed));
+                if (keys['s']) player.position.add(forward.multiplyScalar(moveSpeed));
+                if (keys['a']) player.position.add(right.multiplyScalar(-moveSpeed));
+                if (keys['d']) player.position.add(right.multiplyScalar(moveSpeed));
+                
+                // Footstep sounds (faster when accelerating)
+                const footstepDelay = 300 - (accelerationSpeed / maxAccelerationSpeed * 150); // Faster footsteps when faster
+                if ((keys['w'] || keys['s'] || keys['a'] || keys['d']) && !isJumping && Date.now() - lastFootstepTime > footstepDelay) {
+                    playSound('footstep');
+                    lastFootstepTime = Date.now();
+                }
+            }
+            
+            // Calculate speed in units per second, then convert to MPH
+            const distanceMoved = player.position.distanceTo(lastPosition);
+            const unitsPerSecond = distanceMoved * 60; // Assuming 60 fps
+            // 1 game unit ≈ 10 meters, convert to mph: (units/sec * 10 meters * 3600 sec/hour) / 1609 meters/mile
+            currentMPH = Math.round(unitsPerSecond * 10 * 3.6 * 0.621371); // Convert to MPH
+            
+            // Update speed display with color based on speed
+            const speedEl = document.getElementById('speedDisplay');
+            if (speedEl) {
+                speedEl.textContent = currentMPH;
+                if (currentMPH > 100) {
+                    speedEl.style.color = '#ff0066'; // Red for super fast
+                } else if (currentMPH > 50) {
+                    speedEl.style.color = '#ffff00'; // Yellow for fast
+                } else {
+                    speedEl.style.color = '#00ffff'; // Cyan for normal
+                }
+            }
+            
+            // Update acceleration bar
+            const accelFillEl = document.getElementById('accelFill');
+            if (accelFillEl) {
+                const accelPercent = (accelerationSpeed / maxAccelerationSpeed) * 100;
+                accelFillEl.style.width = accelPercent + '%';
+            }
+            
+            // Wind force
+            if (distance > 200) {
+                windForce = Math.sin(Date.now() * 0.0005) * 0.02;
+                player.position.x += windForce;
+            }
+            
+            // Gravity
+            velocity.y += THEMES[currentTheme].gravity * 0.016 * timeScale;
+            player.position.y += velocity.y * timeScale;
+            
+            // Platform collision
+            let onPlatform = false;
+            const allPlatforms = [...platforms, ...hologramPlatforms];
+            allPlatforms.forEach(platform => {
+                if (!platform.visible) return;
+                
+                // Hologram platforms don't provide collision
+                if (platform.userData.isHologram) {
+                    const platformTop = platform.position.y + 0.5;
+                    const platformWidth = platform.userData.width || PLATFORM_WIDTH;
+                    const platformLength = platform.userData.length || PLATFORM_LENGTH;
+                    
+                    if (Math.abs(player.position.y - platformTop) < 2 &&
+                        Math.abs(player.position.x - platform.position.x) < platformWidth / 2 &&
+                        Math.abs(player.position.z - platform.position.z) < platformLength / 2) {
+                        // You fall through hologram platforms!
+                        showNotification('HOLOGRAM!');
+                    }
+                    return;
+                }
+                
+                const platformTop = platform.position.y + 0.5;
+                const platformBottom = platform.position.y - 0.5;
+                const platformWidth = platform.userData.width || PLATFORM_WIDTH;
+                const platformLength = platform.userData.length || PLATFORM_LENGTH;
+                
+                if (player.position.y <= platformTop + 1.6 &&
+                    player.position.y >= platformBottom &&
+                    Math.abs(player.position.x - platform.position.x) < platformWidth / 2 &&
+                    Math.abs(player.position.z - platform.position.z) < platformLength / 2) {
+                    
+                    if (velocity.y <= 0) {
+                        player.position.y = platformTop + 1.5; // Player height above platform
+                        velocity.y = 0;
+                        isJumping = false;
+                        canJump = true;
+                        hasDoubleJump = true;
+                        onPlatform = true;
+                        
+                        // Landing particles
+                        if (Math.abs(velocity.y) > 0.2) {
+                            createParticles(player.position, 'land');
+                        }
+                        
+                        updateAbilityUI();
+                    }
+                }
+            });
+            
+            // Fall detection
+            if (player.position.y < -10) {
+                gameOver();
+            }
+            
+            // Update distance and score (score based on distance only)
+            const newDistance = Math.floor(Math.abs(player.position.z));
+            if (newDistance > distance) {
+                score += (newDistance - distance); // 1 point per meter
+                distance = newDistance;
+            }
+            
+            // Record position for replay
+            if (isRecording && gameRunning) {
+                recordedRun.push({
+                    position: player.position.clone(),
+                    rotation: player.rotation.clone(),
+                    time: Date.now() - startTime
+                });
+            }
+            
+            // Update ghost player
+            if (isPlayingGhost && ghostPlayer && bestRun && bestRun.length > 0) {
+                const currentTime = Date.now() - startTime;
+                
+                // Find closest frame
+                let closestFrame = bestRun[0];
+                let minDiff = Math.abs(bestRun[0].time - currentTime);
+                
+                for (let i = 1; i < bestRun.length; i++) {
+                    const diff = Math.abs(bestRun[i].time - currentTime);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestFrame = bestRun[i];
+                    }
+                }
+                
+                if (closestFrame && closestFrame.position) {
+                    ghostPlayer.position.copy(closestFrame.position);
+                    if (closestFrame.rotation) {
+                        ghostPlayer.rotation.y = closestFrame.rotation.y;
+                    }
+                    
+                    // Debug log every 60 frames
+                    if (Math.floor(currentTime / 1000) % 2 === 0 && currentTime % 1000 < 50) {
+                        console.log('Ghost at:', ghostPlayer.position.x.toFixed(1), ghostPlayer.position.y.toFixed(1), ghostPlayer.position.z.toFixed(1));
+                    }
+                }
+            }
+            
+            // Update speed bar
+            const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+            const speedPercent = Math.min(100, (speed / SPRINT_SPEED) * 100);
+            const speedBar = document.getElementById('speedBar');
+            speedBar.style.width = speedPercent + '%';
+            
+            if (isDashing) {
+                speedBar.classList.add('dashing');
+                speedBar.classList.remove('sprinting');
+            } else if (keys['shift']) {
+                speedBar.classList.add('sprinting');
+                speedBar.classList.remove('dashing');
+            } else {
+                speedBar.classList.remove('sprinting', 'dashing');
+            }
+        }
+        
+        function checkAchievements() {
+            const newAchievements = [];
+            
+            if (distance >= 500 && !achievements.includes('First 500m')) {
+                newAchievements.push('First 500m - Reach 500 meters');
+                achievements.push('First 500m');
+            }
+            if (distance >= 1000 && !achievements.includes('Kilometer Runner')) {
+                newAchievements.push('Kilometer Runner - Reach 1000 meters');
+                achievements.push('Kilometer Runner');
+            }
+            if (Math.floor(distance / 100) >= 5 && !achievements.includes('Level 5')) {
+                newAchievements.push('Level 5 - Reach difficulty level 5');
+                achievements.push('Level 5');
+            }
+            if (maxCombo >= 10 && !achievements.includes('Combo Master')) {
+                newAchievements.push('Combo Master - Achieve 10x combo');
+                achievements.push('Combo Master');
+            }
+            if (score >= 10000 && !achievements.includes('High Scorer')) {
+                newAchievements.push('High Scorer - Score 10,000 points');
+                achievements.push('High Scorer');
+            }
+            
+            return newAchievements;
+        }
+        
+        function checkUnlocks() {
+            const newUnlocks = [];
+            
+            // Check color unlocks
+            for (const [key, requirement] of Object.entries(UNLOCK_REQUIREMENTS.colors)) {
+                if (!unlocks.colors.includes(key) && stats[requirement.stat] >= requirement.value) {
+                    unlocks.colors.push(key);
+                    newUnlocks.push(`${requirement.name} Color`);
+                }
+            }
+            
+            // Check trail unlocks
+            for (const [key, requirement] of Object.entries(UNLOCK_REQUIREMENTS.trails)) {
+                if (!unlocks.trails.includes(key) && stats[requirement.stat] >= requirement.value) {
+                    unlocks.trails.push(key);
+                    newUnlocks.push(`${requirement.name}`);
+                }
+            }
+            
+            if (newUnlocks.length > 0) {
+                localStorage.setItem('parkourUnlocks', JSON.stringify(unlocks));
+            }
+            
+            return newUnlocks;
+        }
+        
+        function showStats() {
+            document.getElementById('statTotalRuns').textContent = stats.totalRuns;
+            document.getElementById('statTotalDistance').textContent = stats.totalDistance;
+            document.getElementById('statBestDistance').textContent = stats.bestDistance;
+            document.getElementById('statBestScore').textContent = stats.bestScore;
+            document.getElementById('statBestCombo').textContent = stats.bestCombo;
+            document.getElementById('statTotalDeaths').textContent = stats.totalDeaths;
+            document.getElementById('statPowerups').textContent = stats.powerupsCollected;
+            document.getElementById('statObstacles').textContent = stats.obstaclesDodged;
+            
+            document.getElementById('statsModal').style.display = 'block';
+        }
+        
+        function showUnlocks() {
+            const colorGrid = document.getElementById('colorUnlocks');
+            colorGrid.innerHTML = '';
+            
+            const colors = {
+                default: '#00ff88',
+                red: '#ff0000',
+                blue: '#0088ff',
+                purple: '#ff00ff',
+                gold: '#ffd700',
+                rainbow: 'linear-gradient(90deg, red, orange, yellow, green, blue, purple)'
+            };
+            
+            for (const [key, color] of Object.entries(colors)) {
+                const isUnlocked = unlocks.colors.includes(key);
+                const isSelected = unlocks.currentColor === key;
+                const requirement = UNLOCK_REQUIREMENTS.colors[key];
+                
+                const item = document.createElement('div');
+                item.className = 'unlock-item' + (isUnlocked ? ' unlocked' : '') + (isSelected ? ' selected' : '');
+                item.innerHTML = `
+                    <div class="unlock-preview" style="background: ${color};"></div>
+                    <div class="unlock-name">${key.toUpperCase()}</div>
+                    ${requirement ? `<div class="unlock-requirement ${stats[requirement.stat] >= requirement.value ? 'met' : ''}">${requirement.stat}: ${stats[requirement.stat]}/${requirement.value}</div>` : ''}
+                `;
+                
+                if (isUnlocked) {
+                    item.onclick = () => selectColor(key);
+                }
+                
+                colorGrid.appendChild(item);
+            }
+            
+            const trailGrid = document.getElementById('trailUnlocks');
+            trailGrid.innerHTML = '';
+            
+            const trails = ['default', 'fire', 'ice', 'electric', 'shadow'];
+            
+            for (const key of trails) {
+                const isUnlocked = unlocks.trails.includes(key);
+                const isSelected = unlocks.currentTrail === key;
+                const requirement = UNLOCK_REQUIREMENTS.trails[key];
+                
+                const item = document.createElement('div');
+                item.className = 'unlock-item' + (isUnlocked ? ' unlocked' : '') + (isSelected ? ' selected' : '');
+                item.innerHTML = `
+                    <div class="unlock-preview" style="background: #333;">Trail Preview</div>
+                    <div class="unlock-name">${key.toUpperCase()}</div>
+                    ${requirement ? `<div class="unlock-requirement ${stats[requirement.stat] >= requirement.value ? 'met' : ''}">${requirement.stat}: ${stats[requirement.stat]}/${requirement.value}</div>` : ''}
+                `;
+                
+                if (isUnlocked) {
+                    item.onclick = () => selectTrail(key);
+                }
+                
+                trailGrid.appendChild(item);
+            }
+            
+            document.getElementById('unlocksModal').style.display = 'block';
+        }
+        
+        function selectColor(color) {
+            unlocks.currentColor = color;
+            localStorage.setItem('parkourUnlocks', JSON.stringify(unlocks));
+            showUnlocks();
+        }
+        
+        function selectTrail(trail) {
+            unlocks.currentTrail = trail;
+            localStorage.setItem('parkourUnlocks', JSON.stringify(unlocks));
+            showUnlocks();
+        }
+        
+        function startDailyChallenge() {
+            document.getElementById('dailySeed').textContent = dailyChallenge.seed;
+            document.getElementById('dailyBest').textContent = dailyChallenge.bestScore;
+            document.getElementById('dailyChallengeModal').style.display = 'block';
+        }
+        
+        function startDailyChallengeRun() {
+            closeModal('dailyChallengeModal');
+            restartGame();
+        }
+        
+        function toggleGhost() {
+            if (!bestRun || !bestRun.length) {
+                showNotification('No best run recorded yet! Play a game first.');
+                isPlayingGhost = false;
+                document.getElementById('ghostToggle').textContent = 'GHOST: OFF';
+                return;
+            }
+            
+            isPlayingGhost = !isPlayingGhost;
+            document.getElementById('ghostToggle').textContent = 'GHOST: ' + (isPlayingGhost ? 'ON' : 'OFF');
+            
+            if (isPlayingGhost) {
+                showNotification('Ghost Mode Enabled! Restart to race your best run.');
+            }
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        
+        function resetStats() {
+            if (confirm('Are you sure you want to reset all statistics? This cannot be undone!')) {
+                stats = {
+                    totalDistance: 0,
+                    totalRuns: 0,
+                    totalDeaths: 0,
+                    bestDistance: 0,
+                    bestScore: 0,
+                    bestCombo: 0,
+                    totalCombo: 0,
+                    powerupsCollected: 0,
+                    obstaclesDodged: 0,
+                    timePlayedSeconds: 0
+                };
+                localStorage.setItem('parkourStats', JSON.stringify(stats));
+                showStats();
+            }
+        }
+        
+        function gameOver() {
+            if (!gameRunning) return;
+            gameRunning = false;
+            isRecording = false;
+            
+            // Update statistics
+            stats.totalRuns++;
+            stats.totalDeaths++;
+            stats.totalDistance += distance;
+            stats.totalCombo += combo;
+            if (distance > stats.bestDistance) stats.bestDistance = distance;
+            if (score > stats.bestScore) stats.bestScore = score;
+            if (maxCombo > stats.bestCombo) stats.bestCombo = maxCombo;
+            stats.timePlayedSeconds += (Date.now() - startTime) / 1000;
+            localStorage.setItem('parkourStats', JSON.stringify(stats));
+            
+            // Save best run for replay
+            if (score > (bestRun ? bestRun[0]?.score || 0 : 0)) {
+                recordedRun[0] = { ...recordedRun[0], score: score };
+                bestRun = recordedRun;
+                localStorage.setItem('bestRun', JSON.stringify(bestRun));
+                showNotification('NEW BEST RUN RECORDED!');
+            }
+            
+            const finalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+            document.getElementById('finalTime').textContent = finalTime;
+            document.getElementById('finalDistance').textContent = distance;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('maxCombo').textContent = maxCombo;
+            
+            // Achievements
+            const newAchievements = checkAchievements();
+            const achievementsEl = document.getElementById('achievements');
+            if (newAchievements.length > 0) {
+                achievementsEl.innerHTML = '<h3 style="color: #ffff00; font-family: Orbitron;">NEW ACHIEVEMENTS!</h3>';
+                newAchievements.forEach(ach => {
+                    achievementsEl.innerHTML += `<div class="achievement">🏆 ${ach}</div>`;
+                });
+            } else {
+                achievementsEl.innerHTML = '';
+            }
+            
+            // Check for new unlocks
+            const newUnlocks = checkUnlocks();
+            const unlocksEl = document.getElementById('newUnlocks');
+            if (newUnlocks.length > 0) {
+                unlocksEl.innerHTML = '<h3 style="color: #ffff00; font-family: Orbitron;">NEW UNLOCKS!</h3>';
+                newUnlocks.forEach(unlock => {
+                    unlocksEl.innerHTML += `<div class="achievement">✨ ${unlock}</div>`;
+                });
+            } else {
+                unlocksEl.innerHTML = '';
+            }
+            
+            // High scores
+            highScores.push({ distance: distance, score: score, time: finalTime });
+            highScores.sort((a, b) => b.distance - a.distance); // Sort by distance
+            highScores = highScores.slice(0, 5);
+            localStorage.setItem('parkourHighScores', JSON.stringify(highScores));
+            
+            const scoresEl = document.getElementById('highScoresList');
+            scoresEl.innerHTML = '<h3 style="color: #00ff88; font-family: Orbitron;">HIGH SCORES (BY DISTANCE)</h3>';
+            highScores.forEach((hs, i) => {
+                scoresEl.innerHTML += `<div class="highscore-entry"><span>${i + 1}. ${hs.distance}m</span><span>${hs.score} pts</span><span>${hs.time}s</span></div>`;
+            });
+            
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('instructions').style.display = 'none';
+            
+            document.exitPointerLock();
+        }
+        
+        function restartGame() {
+            player.position.set(0, 2.5, 0);
+            velocity.set(0, 0, 0);
+            cameraRotation = { x: 0, y: Math.PI };
+            camera.rotation.set(0, 0, 0);
+            camera.position.set(0, 0, 0);
+            player.rotation.set(0, 0, 0);
+            
+            platforms.forEach(p => scene.remove(p));
+            obstacles.forEach(o => scene.remove(o));
+            powerups.forEach(p => scene.remove(p));
+            particles.forEach(p => scene.remove(p));
+            rails.forEach(r => scene.remove(r));
+            lasers.forEach(l => scene.remove(l));
+            rotatingBlades.forEach(b => scene.remove(b));
+            bouncePads.forEach(b => scene.remove(b));
+            hazardFloors.forEach(h => scene.remove(h));
+            destructibleWalls.forEach(w => scene.remove(w));
+            hologramPlatforms.forEach(h => scene.remove(h));
+            collectibles.forEach(c => scene.remove(c));
+            lootBoxes.forEach(b => scene.remove(b));
+            
+            if (ghostPlayer) {
+                scene.remove(ghostPlayer);
+                ghostPlayer = null;
+            }
+            
+            platforms = [];
+            obstacles = [];
+            powerups = [];
+            particles = [];
+            rails = [];
+            lasers = [];
+            rotatingBlades = [];
+            bouncePads = [];
+            hazardFloors = [];
+            destructibleWalls = [];
+            hologramPlatforms = [];
+            collectibles = [];
+            lootBoxes = [];
+            specialPlatforms = [];
+            
+            gameRunning = true;
+            gameStarted = false;
+            isJumping = false;
+            canJump = true;
+            hasDoubleJump = true;
+            isSliding = false;
+            isDashing = false;
+            dashCooldownActive = false;
+            hasShield = false;
+            combo = 0;
+            maxCombo = 0;
+            score = 0;
+            distance = 0;
+            health = 100;
+            startTime = Date.now();
+            lastHologramZ = -1000;
+            accelerationSpeed = 0;
+            
+            createInitialPlatforms();
+            updateSkybox();
+            updateShieldUI();
+            updateAbilityUI();
+            
+            // Recreate ghost if enabled
+            if (isPlayingGhost && bestRun) {
+                console.log('Recreating ghost on restart. Best run has', bestRun.length, 'frames');
+                const ghostGeometry = new THREE.BoxGeometry(3, 4, 3);
+                const ghostMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ffff,
+                    transparent: true,
+                    opacity: 0.8,
+                    wireframe: false
+                });
+                ghostPlayer = new THREE.Mesh(ghostGeometry, ghostMaterial);
+                ghostPlayer.position.set(0, 2.5, 0);
+                
+                const glowGeometry = new THREE.BoxGeometry(4, 5, 4);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff00ff,
+                    transparent: true,
+                    opacity: 0.5
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                ghostPlayer.add(glow);
+                
+                scene.add(ghostPlayer);
+                console.log('Ghost recreated at:', ghostPlayer.position);
+            }
+            
+            // Start recording if not watching ghost
+            if (!isPlayingGhost) {
+                isRecording = true;
+                recordedRun = [];
+            }
+            
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('instructions').style.display = 'block';
+        }
+        
+        function updateUI() {
+            if (gameRunning) {
+                gameTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                document.getElementById('timer').textContent = gameTime;
+                document.getElementById('distance').textContent = distance;
+                document.getElementById('level').textContent = Math.floor(distance / 100) + 1;
+                document.getElementById('score').textContent = score;
+                document.getElementById('health').textContent = health;
+                document.getElementById('healthFill').style.width = (health / maxHealth * 100) + '%';
+            }
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            updatePlayer();
+            updatePlatforms();
+            updateParticles();
+            checkCollisions();
+            updateCombo();
+            updateUI();
+            updateSkybox();
+            
+            renderer.render(scene, camera);
+        }
+        
+        init();
+    </script>
+</body>
+</html>
