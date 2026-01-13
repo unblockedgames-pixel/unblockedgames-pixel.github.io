@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chinese TTS Demo</title>
+</head>
+<body>
+  <h1>Chinese Text-to-Speech</h1>
+
+  <textarea id="text" rows="10" cols="60" placeholder="输入中文文本..."></textarea><br>
+  <button onclick="speakText()">Speak</button>
+
+  <script>
+    function splitText(text, maxLength = 300) {
+      const chunks = [];
+      let start = 0;
+
+      while (start < text.length) {
+        chunks.push(text.substring(start, start + maxLength));
+        start += maxLength;
+      }
+      return chunks;
+    }
+
+    function speakText() {
+      const textInput = document.getElementById('text').value;
+      if (!textInput) return alert('请输入中文文本');
+
+      const chunks = splitText(textInput);
+      const voices = speechSynthesis.getVoices();
+      const chineseVoice = voices.find(v => v.lang.includes('zh'));
+
+      speechSynthesis.cancel(); // stop previous speech
+
+      chunks.forEach((chunk, index) => {
+        const utterance = new SpeechSynthesisUtterance(chunk);
+        utterance.lang = 'zh-CN';
+        utterance.pitch = 0.9;
+        utterance.rate = 0.95;
+        if (chineseVoice) utterance.voice = chineseVoice;
+
+        // Queue them in order
+        speechSynthesis.speak(utterance);
+      });
+    }
+  </script>
+</body>
+</html>
