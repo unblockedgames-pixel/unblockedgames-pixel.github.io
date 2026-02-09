@@ -4,16 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Forever</title>
+
     <style>
-        body, html {
+        html, body {
             margin: 0;
+            padding: 0;
+            width: 100%;
             height: 100%;
             overflow: hidden;
+            background: black;
         }
+
         iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: fixed;
+            inset: 0;
             width: 100%;
             height: 100%;
             border: none;
@@ -21,62 +25,60 @@
     </style>
 </head>
 <body>
-    <iframe id="myIframe"></iframe>
 
-    <script>
-        function encodeBase64(str) {
-            return btoa(unescape(encodeURIComponent(str))); // Encode URL safely
+<iframe
+    id="myIframe"
+    allow="fullscreen; autoplay; clipboard-read; clipboard-write"
+    allowfullscreen
+    webkitallowfullscreen
+    mozallowfullscreen>
+</iframe>
+
+<script>
+    function encodeBase64(str) {
+        return btoa(encodeURIComponent(str));
+    }
+
+    function decodeBase64(str) {
+        try {
+            return decodeURIComponent(atob(str));
+        } catch {
+            return null;
         }
+    }
 
-        function decodeBase64(str) {
-            try {
-                return decodeURIComponent(escape(atob(str))); // Decode safely
-            } catch (e) {
-                return null; // Handle invalid Base64 strings
-            }
+    const iframe = document.getElementById("myIframe");
+    const params = new URLSearchParams(location.hash.slice(1));
+    const encodedUrl = params.get("url");
+
+    if (encodedUrl) {
+        const decodedUrl = decodeBase64(encodedUrl);
+        if (decodedUrl) iframe.src = decodedUrl;
+    } else {
+        const userUrl = prompt("Enter a URL to embed:");
+        if (userUrl) {
+            const encoded = encodeBase64(userUrl);
+            location.hash = `url=${encoded}`;
+            iframe.src = userUrl;
         }
+    }
 
-        const urlParams = new URLSearchParams(window.location.hash.substring(1));
-        let encodedUrl = urlParams.get('url');
+    // Disable right-click outside iframe only
+    document.addEventListener("contextmenu", e => {
+        if (!e.target.closest("iframe")) e.preventDefault();
+    });
 
-        if (encodedUrl) {
-            let decodedUrl = decodeBase64(encodedUrl);
-            if (decodedUrl) {
-                document.getElementById('myIframe').src = decodedUrl;
-            }
-        } else {
-            // Prompt for URL input
-            let userUrl = prompt("Enter a URL to embed:");
-            if (userUrl) {
-                let base64Url = encodeBase64(userUrl);
-                window.location.hash = `url=${base64Url}`; // Update URL bar with Base64
-                document.getElementById('myIframe').src = userUrl; // Load the URL in iframe
-            }
+    // Block common DevTools shortcuts (note: cannot be fully prevented)
+    document.addEventListener("keydown", e => {
+        if (
+            e.key === "F12" ||
+            (e.ctrlKey && e.shiftKey && ["I", "J"].includes(e.key)) ||
+            (e.ctrlKey && e.key === "U")
+        ) {
+            e.preventDefault();
         }
-
-        // Disable right-click on the main page, but allow it inside the iframe
-        document.addEventListener("contextmenu", function(event) {
-            if (!event.target.closest("iframe")) { // Prevent right-click only outside the iframe
-                event.preventDefault();
-            }
-        });
-
-        // Disable DevTools shortcuts
-        document.addEventListener("keydown", function(event) {
-            if (event.ctrlKey && event.shiftKey && event.key === 'I') { // Ctrl + Shift + I
-                event.preventDefault();
-            }
-            if (event.key === 'F12') { // F12
-                event.preventDefault();
-            }
-            if (event.ctrlKey && event.shiftKey && event.key === 'J') { // Ctrl + Shift + J
-                event.preventDefault();
-            }
-            if (event.ctrlKey && event.key === 'U') { // Ctrl + U (View Source)
-                event.preventDefault();
-            }
-        });
-    </script>
+    });
+</script>
 
 </body>
 </html>
